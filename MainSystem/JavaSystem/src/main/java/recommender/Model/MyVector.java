@@ -4,41 +4,43 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MyVector {
+/**
+ * Immutable clean class
+ */
+public final class MyVector {
     private final List<Double> coordinates;
 
-    public MyVector(){
-        this.coordinates = new ArrayList<>();
+    public MyVector(List<Double> coordinates) {
+        if (coordinates == null || coordinates.isEmpty()) {
+            throw new IllegalArgumentException("Vector cannot be empty");
+        }
+        // Full immutable
+        this.coordinates = List.copyOf(coordinates);
     }
 
-    public MyVector(List<Double> coordinates){
-        this.coordinates = new ArrayList<>(coordinates);
-    }
-
-    // Sum
-    public MyVector add(MyVector other){
-        if(other.size() != this.size()){
-            throw new IllegalArgumentException("MyVector sizes do not match");
+    public MyVector add(MyVector other) {
+        if (other.size() != this.size()) {
+            throw new IllegalArgumentException("Different sizes of vectors: " + this.size() + " != " + other.size());
         }
 
-        List<Double> result = new ArrayList<>();
-        for (int i = 0; i < other.size(); i++) {
+        List<Double> result = new ArrayList<>(this.size());
+        for (int i = 0; i < this.size(); i++) {
             result.add(this.coordinates.get(i) + other.coordinates.get(i));
         }
         return new MyVector(result);
     }
 
-    public MyVector scale(double factor){
-        List<Double> result = new ArrayList<>();
-        for (int i = 0; i < this.size(); i++) {
-            result.add(this.coordinates.get(i)*factor);
+    public MyVector scale(double factor) {
+        List<Double> result = new ArrayList<>(this.size());
+        for (double coord : this.coordinates) {
+            result.add(coord * factor);
         }
         return new MyVector(result);
     }
 
     public double dot(MyVector other) {
         if (this.size() != other.size()) {
-            throw new IllegalArgumentException("Sizes don't match");
+            throw new IllegalArgumentException("Different sizes of vectors");
         }
 
         double sum = 0;
@@ -48,7 +50,7 @@ public class MyVector {
         return sum;
     }
 
-    public double norm(){
+    public double norm() {
         double total = 0;
         for (double value : coordinates) {
             total += value * value;
@@ -57,39 +59,27 @@ public class MyVector {
     }
 
     public double cosine(MyVector other) {
-        double dotProduct = this.dot(other);
         double normProduct = this.norm() * other.norm();
-
-        if (normProduct == 0) {
-            return 0;
+        // Защита от деления на ноль при сравнении с пустыми профилями
+        if (normProduct == 0.0) {
+            return 0.0;
         }
-        return dotProduct / normProduct;
+        return this.dot(other) / normProduct;
     }
 
     public static MyVector zero(int dimension) {
-        List<Double> coords = new ArrayList<>(Collections.nCopies(dimension, 0.0));
-        return new MyVector(coords);
+        return new MyVector(Collections.nCopies(dimension, 0.0));
     }
 
     public List<Double> getCoordinates() {
-        return new ArrayList<>(coordinates);    // It's better to return the copy because of risks of destroying main version of this vector
+        return this.coordinates;
     }
 
-    public int size(){
+    public int size() {
         return coordinates.size();
     }
 
-    public void set(int index, double value) {
-        if(index < 0 || index >= coordinates.size()){
-            throw new IndexOutOfBoundsException("Index: " + index);
-        }
-        coordinates.set(index, value);
-    }
-
     public double get(int index) {
-        if(index < 0 || index >= coordinates.size()){
-            throw new IndexOutOfBoundsException("Index: " + index);
-        }
         return coordinates.get(index);
     }
 

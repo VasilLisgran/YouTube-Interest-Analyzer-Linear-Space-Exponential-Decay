@@ -60,7 +60,7 @@ public final class MyVector {
 
     public double cosine(MyVector other) {
         double normProduct = this.norm() * other.norm();
-        // Защита от деления на ноль при сравнении с пустыми профилями
+    
         if (normProduct == 0.0) {
             return 0.0;
         }

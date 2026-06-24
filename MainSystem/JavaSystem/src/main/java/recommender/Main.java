@@ -11,117 +11,125 @@ import recommender.Model.User;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Главный точка входа системы рекомендаций.
+ * Демонстрирует паттерн оркестрации, управление внешними процессами (IPC) и обработку ошибок.
+ */
 public class Main {
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String DATA_DIR = "../data";
+    private static final String CLUSTERS_DIR = "../clusters";
+    private static final String CLUSTERS_RESULT_PATH = DATA_DIR + "/clusters_result.json";
+    private static final String PYTHON_SCRIPT = "clusters.py";
 
     public static void main(String[] args) {
         try {
-            System.out.println("🎬 YouTube Recommendation System");
-            System.out.println("================================");
-            System.out.println("📌 Using Liked Videos as interest signals\n");
+            System.out.println("🎬 Рекомендательная система на базе YouTube API и NLP");
+            System.out.println("=================================================");
 
-            // 1. Load categories & Authorize YouTube
-            System.out.println("🔐 Authorizing YouTube...");
+            // Инициализация инфраструктурного слоя
+            System.out.println("🔐 Авторизация в Google OAuth 2.0...");
             YouTube youtube = YouTubeAuth.authenticate();
-            var categoryRegistry = new CategoryRegistry();
-            var dataLoader = new YouTubeDataLoader(youtube, categoryRegistry);
-            System.out.println("📂 Loading categories...");
-            System.out.println("✅ Loaded " + dataLoader.categoryRegistry.getDimension() + " categories");
 
-            // 2. Authorized
-            System.out.println("✅ Authorization successful!\n");
+            CategoryRegistry categoryRegistry = new CategoryRegistry();
+            YouTubeDataLoader dataLoader = new YouTubeDataLoader(youtube, categoryRegistry);
 
-            // 3. Load liked videos
-            YouTubeDataLoader ytLoader = new YouTubeDataLoader(youtube, new CategoryRegistry());
-            List<Event> likedVideos = ytLoader.fetchLikedVideos(80);  // Loading 80 last liked videos
+            System.out.println("✅ Справочник категорий успешно загружен (" + categoryRegistry.getDimension() + " векторов)");
 
-            if (likedVideos.isEmpty()) {
-                System.out.println("\n❌ No liked videos found!");
-                System.out.println("   Please like some videos on YouTube first, then try again.");
+            // Загрузка данных пользователя
+            User user = new User("TargetUser", categoryRegistry);
+            List<Event> events = dataLoader.fetchLikedVideos(100); // Ограничим 100 для демонстрации
+
+            for (Event event : events) {
+                user.addEvent(event);
+            }
+
+            // Математический обсчет профиля
+            user.calculateWithDecayAndDynamics();
+            user.printUserVector();
+
+            // Интеграция с Python-модулем машинного обучения (LaBSE Clustering)
+            System.out.println("\n🤖 [IPC] Запуск конвейера NLP кластеризации на Python...");
+            if (!runPythonClustering()) {
+                System.err.println("❌ Ошибка выполнения Python скрипта кластеризации. Завершение работы.");
                 return;
             }
 
-            System.out.println("\n####################################################################\n");
+            // Загрузка результатов кластеризации и генерация рекомендаций
+            Map<String, Map<String, List<String>>> clusters = loadClustersFromJson(CLUSTERS_RESULT_PATH);
+            if (clusters == null || clusters.isEmpty()) {
+                System.err.println("⚠️ Данные кластеров пусты или повреждены.");
+                return;
+            }
 
-            // 4. Launching Python
-            System.out.println("\n Launching Python...");
-            boolean pythonSuccess = runPythonClustering();
-            Map<String, Map<String, List<String>>> clusters = loadClustersFromJson( "../data/clusters_result.json");
+            // Ранжирование топ-категорий на основе косинусного сходства
+            var topCategories = user.getTopCategories(3);
+            dataLoader.generateRecommendations(topCategories, clusters);
 
-            if (clusters != null && !clusters.isEmpty()) {
-                System.out.println("✅ Got clusters:");
-                for (var category : clusters.entrySet()) {
-                    System.out.println("   📁 " + category.getKey());
-                    for (var cluster : category.getValue().entrySet()) {
-                        System.out.println("      Cluster " + cluster.getKey() + ": " + cluster.getValue());
-                    }
+        } catch (Exception e) {
+            System.err.println("\n❌ Критический сбой ядра приложения: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Безопасный запуск внешнего ML скрипта.
+     * Исключает возникновение Deadlock за счет правильного вычитывания буфера потока.
+     */
+    /**
+     * Безопасный и кроссплатформенный запуск внешнего ML скрипта.
+     * Автоматически определяет команду (python/python3) и валидирует пути.
+     */
+    private static boolean runPythonClustering() {
+        try {
+            String pythonFolderName = "PythonSystem";
+            String scriptName = "clusters.py";
+
+            File workingDir = new File("../" + pythonFolderName);
+
+            if (!workingDir.exists() || !workingDir.isDirectory()) {
+                System.err.println("   ❌Error: not found path: " + workingDir.getAbsolutePath());
+                return false;
+            }
+
+            // For Mac
+            String pythonCommand = "python3";
+            String[] standardMacPaths = {
+                    "/opt/homebrew/bin/python3",
+                    "/usr/local/bin/python3",
+                    "/usr/bin/python3"
+            };
+
+            for (String path : standardMacPaths) {
+                if (new File(path).exists()) {
+                    pythonCommand = path;
+                    break;
                 }
             }
 
 
-            // 5. Create user and add liked videos as history
-            User user = new User("YouTube User", ytLoader.categoryRegistry);
-            for (Event event : likedVideos) {
-                user.addEvent(event);
-            }
-
-            System.out.println("\n📊 User profile created with " + user.getHistory().size() + " liked videos");
-
-            // 6. Calculate with decay
-            System.out.println("\n📊 Calculating user vector with time decay...");
-            user.calculateWithDecayAndDynamics(0.95);
-
-            // 7. Show simple statistics
-            user.showVector();
-
-            System.out.println("\n####################################################################\n");
-
-            // 8. Get Top categories
-            System.out.println("🎯 TOP CATEGORIES:");
-            System.out.println("======================");
-            List<Map.Entry<String, Double>> top = user.getTopCategories(10);
-            for (var entry : top) {
-                System.out.printf("  %s: %.3f%n", entry.getKey(), entry.getValue());
-            }
-
-            // 9. Get Recommendations
-            ytLoader.recommendVideo(clusters, top);
-
-        } catch (IOException e) {
-            System.out.println("\n❌ IO Error: " + e.getMessage());
-            e.printStackTrace();
-        } catch (GeneralSecurityException e) {
-            System.out.println("\n❌ Security Error: " + e.getMessage());
-            e.printStackTrace();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static boolean runPythonClustering(){
-        try {
-            ProcessBuilder pb = new ProcessBuilder("python3", "../clusters/clusters.py");
-            pb.directory(new File("../clusters"));
+            ProcessBuilder pb = new ProcessBuilder(pythonCommand, scriptName);
+            pb.directory(workingDir);
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("   [Python] " + line);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println("   [Python ML] " + line);
+                }
             }
 
-            return process.waitFor() == 0;
+            int exitCode = process.waitFor();
+            return exitCode == 0;
 
         } catch (Exception e) {
             System.out.println("   ⚠️ Python error: " + e.getMessage());
@@ -129,15 +137,15 @@ public class Main {
         }
     }
 
-    // Method to load clusters from JSON we get after launching python
-    public static Map<String, Map<String, List<String>>> loadClustersFromJson(String filePath){
+    public static Map<String, Map<String, List<String>>> loadClustersFromJson(String filePath) {
         try {
             Path path = Paths.get(filePath);
-            if(!Files.exists(path)) return null;
-            return mapper.readValue(path.toFile(), new TypeReference<>() {
-            });
-        }
-        catch (Exception e) {
+            if (!Files.exists(path)) {
+                return null;
+            }
+            return MAPPER.readValue(path.toFile(), new TypeReference<>() {});
+        } catch (Exception e) {
+            System.err.println("   ⚠️ Clusters error: " + e.getMessage());
             return null;
         }
     }

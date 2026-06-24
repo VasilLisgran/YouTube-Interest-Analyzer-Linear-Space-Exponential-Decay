@@ -5,194 +5,214 @@ import com.google.api.services.youtube.model.*;
 import recommender.JSON_Reader;
 import recommender.Model.CategoryRegistry;
 import recommender.Model.Event;
-import recommender.Model.MyVector;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Loader Data from YouTube API
- * Converts API answers to Event objects
+ * Loading API YouTube
+ * Optimization & filtering
  */
 public class YouTubeDataLoader {
-    private final JSON_Reader JSONreader = new JSON_Reader();
+    private final JSON_Reader jsonReader = new JSON_Reader();
     private final YouTube youtube;
     public final CategoryRegistry categoryRegistry;
+
+    // Liked videos
+    private final Set<String> watchedTitles = new HashSet<>();
 
     public YouTubeDataLoader(YouTube youtube, CategoryRegistry categoryRegistry) {
         this.youtube = youtube;
         this.categoryRegistry = categoryRegistry;
     }
 
-    /**
-     * Getting the history of views from YouTube
-     * @param maxEvents is max count of events (0 = all)
-     * @return list of Event for user
-     */
-
     public List<Event> fetchLikedVideos(int maxEvents) throws Exception {
         List<Event> events = new ArrayList<>();
         String pageToken = null;
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
-        LocalDate today = LocalDate.now();
-        LocalDate maxAgeDate = today.minusDays(360);
-
-        System.out.println("Loading liked videos from YouTube...");
-        System.out.println("=====================================");
+        System.out.println("Loading likes (API)");
+        int totalFetched = 0;
 
         do {
-            YouTube.PlaylistItems.List request = youtube.playlistItems()
+            // 1. Getting likes
+            YouTube.PlaylistItems.List playlistRequest = youtube.playlistItems()
                     .list(Arrays.asList("snippet", "contentDetails"));
-
-            request.setPlaylistId("LL");
-            request.setMaxResults(50L);
-            request.setPageToken(pageToken);
-
-            PlaylistItemListResponse response = request.execute();
-
-            System.out.println("📄 Page loaded: " + response.getItems().size() + " items");
-
-            for (PlaylistItem item : response.getItems()) {
-                String videoId = item.getContentDetails().getVideoId();
-                String title = item.getSnippet().getTitle();
-                String likedData = item.getSnippet().getPublishedAt().toString();
-                LocalDate likedDate = LocalDate.parse(likedData, DateTimeFormatter.ISO_DATE_TIME);
-
-                if (likedDate.isBefore(maxAgeDate)) {
-                    System.out.println("\n⏭️ Skipped (older than 360 days): " + title);
-                    System.out.println("   Date liked: " + likedDate);
-                    continue;
-                }
-
-                System.out.println("\n✅ Liked video (within 360 days): " + title);
-                System.out.println("   Date liked: " + likedDate);
-
-                Video video = getVideoDetails(videoId);
-                if (video != null) {
-                    String categoryId = video.getSnippet().getCategoryId();
-                    String categoryName = categoryRegistry.getCategoryName(categoryId);
-
-                    JSONreader.addVideo(title, categoryName);
-
-                    int watchTime = (int) parseDuration(video.getContentDetails().getDuration());
-
-                    System.out.println("   Category ID: " + categoryId);
-                    System.out.println("   Category name: " + categoryName);
-                    System.out.println("   Video duration: " + watchTime + " min");
-
-                    if (categoryName != null && watchTime > 0) {
-                        Event event = new Event(likedDate, categoryId, watchTime);
-                        events.add(event);
-                        System.out.println("   ✅ Added to history!");
-                    } else {
-                        System.out.println("   ⚠️ Skipped - category not in our list");
-                    }
-                }
-
-                if (maxEvents > 0 && events.size() >= maxEvents) {
-                    break;
-                }
+            playlistRequest.setPlaylistId("LL");
+            playlistRequest.setMaxResults(50L);
+            if (pageToken != null) {
+                playlistRequest.setPageToken(pageToken);
             }
 
-            pageToken = response.getNextPageToken();
+            PlaylistItemListResponse playlistResponse = playlistRequest.execute();
+            List<PlaylistItem> items = playlistResponse.getItems();
 
-        } while (pageToken != null && (maxEvents == 0 || events.size() < maxEvents));
+            if (items == null || items.isEmpty()) break;
 
-        System.out.println("\n=====================================");
-        System.out.println("✅ Total loaded (last 180 days): " + events.size() + " liked videos");
-        JSONreader.saveToJson("../data/user_videos.json");
+            // 2. Getting id of full page
+            List<String> videoIds = items.stream()
+                    .map(item -> item.getContentDetails().getVideoId())
+                    .collect(Collectors.toList());
+
+            Map<String, VideoDetails> detailsMap = fetchVideoDetailsBatch(videoIds);
+
+            // 3. Results
+            for (PlaylistItem item : items) {
+                String videoId = item.getContentDetails().getVideoId();
+                String title = item.getSnippet().getTitle();
+                String publishedAtStr = item.getSnippet().getPublishedAt().toString();
+
+                LocalDate likedDate = LocalDate.parse(publishedAtStr, formatter);
+
+                // Default parameters
+                VideoDetails details = detailsMap.getOrDefault(videoId, new VideoDetails("22", "PT3M0S"));
+                String categoryId = details.getCategoryId();
+
+                // Antipam shorts
+                long durationSec = parseISO8601Duration(details.getDurationISO());
+                int calculatedWeight = calculateAdaptiveWeight(durationSec);
+
+                Event event = new Event(likedDate, categoryId, calculatedWeight);
+                events.add(event);
+
+                // Saving watched
+                watchedTitles.add(title.toLowerCase().trim());
+
+                String categoryName = categoryRegistry.getCategoryName(categoryId);
+                if (categoryName == null) categoryName = "People & Blogs";
+
+                jsonReader.addVideo(title, categoryName);
+
+                totalFetched++;
+                if (maxEvents > 0 && totalFetched >= maxEvents) break;
+            }
+
+            if (maxEvents > 0 && totalFetched >= maxEvents) break;
+            pageToken = playlistResponse.getNextPageToken();
+
+        } while (pageToken != null);
+
+        jsonReader.saveToJson("../data/user_videos.json");
+        System.out.printf(Locale.US, "📊 [API] Успешно обработано событий: %d%n", events.size());
         return events;
     }
 
-    /**
-     * Getting information about video by its ID
-     */
-    private Video getVideoDetails(String videoId) throws IOException {
-        VideoListResponse response = youtube.videos()
-                .list(Arrays.asList("snippet", "contentDetails"))
-                .setId(Collections.singletonList(videoId))
-                .execute();
 
-        if (response.getItems() != null && !response.getItems().isEmpty()) {
-            return response.getItems().get(0);
+    private Map<String, VideoDetails> fetchVideoDetailsBatch(List<String> videoIds) throws IOException {
+        Map<String, VideoDetails> map = new HashMap<>();
+        if (videoIds == null || videoIds.isEmpty()) return map;
+
+        YouTube.Videos.List videoRequest = youtube.videos().list(Arrays.asList("snippet", "contentDetails"));
+        videoRequest.setId(videoIds);
+
+        VideoListResponse response = videoRequest.execute();
+        List<Video> videos = response.getItems();
+
+        if (videos != null) {
+            for (Video v : videos) {
+                String catId = v.getSnippet().getCategoryId();
+                String duration = v.getContentDetails().getDuration();
+                map.put(v.getId(), new VideoDetails(catId, duration));
+            }
         }
-        return null;
+        return map;
     }
 
 
-    /**
-     * Parse duration from ISO format to minutes
-     */
-    private double parseDuration(String duration) {
-        if (duration == null) return 5.0;
-
-        duration = duration.replace("PT", "");
-        double minutes = 0;
-
-        if (duration.contains("D")) {
-            String[] parts = duration.split("D");
-            minutes += Double.parseDouble(parts[0]) * 24 * 60;
-            duration = parts.length > 1 ? parts[1] : "";
+    private int calculateAdaptiveWeight(long durationSeconds) {
+        if (durationSeconds <= 60) {
+            return 10; // Fixed for shorts
         }
-
-        if (duration.contains("H")) {
-            minutes += Double.parseDouble(duration.split("H")[0]) * 60;
-            duration = duration.substring(duration.indexOf("H") + 1);
-        }
-        if (duration.contains("M")) {
-            minutes += Double.parseDouble(duration.split("M")[0]);
-            duration = duration.substring(duration.indexOf("M") + 1);
-        }
-        if (duration.contains("S")) {
-            minutes += Double.parseDouble(duration.split("S")[0]) / 60.0;
-        }
-
-        return Math.max(minutes, 1.0);
+        // For long videos
+        return (int) (40 + Math.log(durationSeconds) * 15);
     }
 
-    public void recommendVideo(Map<String, Map<String, List<String>>> clusters,
-                               List<Map.Entry<String, Double>> top) throws IOException {
+    private long parseISO8601Duration(String isoDuration) {
+        if (isoDuration == null || isoDuration.isEmpty()) return 180;
+        try {
+            return Duration.parse(isoDuration).getSeconds();
+        } catch (Exception e) {
+            return 180;
+        }
+    }
 
-        if (clusters == null || top.isEmpty()) return;
+    public void generateRecommendations(List<Map.Entry<String, Double>> topCategories, Map<String, Map<String, List<String>>> clusters) throws IOException {
+        System.out.println("\n Recommendations:");
+        System.out.println("=========================================");
 
-        System.out.println("\n🎯 Recommendations");
-        System.out.println("==============");
-
-        for (var entry : top) {
+        for (Map.Entry<String, Double> entry : topCategories) {
             String category = entry.getKey();
-            double cosine = entry.getValue();
-            if (cosine < 0.02) continue;
+            double cosineScore = entry.getValue();
 
-            int totalToShow = Math.max(3, (int) (cosine * 20));
+            if (cosineScore < 0.05) continue; // Cut cold categories
+
             Map<String, List<String>> catClusters = clusters.get(category);
-
             if (catClusters == null || catClusters.isEmpty()) continue;
+
+            System.out.printf(Locale.US, "%n📂 Category [%s] (Relevance: %.4f):%n", category, cosineScore);
+
+            int totalToShow = Math.max(3, (int) (cosineScore * 50));
+            int perClusterLimit = Math.max(2, totalToShow / catClusters.size());
 
             for (var cluster : catClusters.entrySet()) {
                 String query = String.join(" ", cluster.getValue());
-                int toShow = totalToShow / catClusters.size();
-                if (toShow < 1) toShow = 3;
-                searchOnYouTube(query, toShow, category);
+                System.out.printf("  🔎 Searching by cluster: \"%s\"%n", query);
+                searchAndFilterOnYouTube(query, perClusterLimit, category);
             }
         }
     }
 
-    public void searchOnYouTube(String query, int maxResults, String category) throws IOException {
+    /**
+     * Cut duplicates
+     */
+    private void searchAndFilterOnYouTube(String query, int limit, String category) throws IOException {
         YouTube.Search.List request = youtube.search().list(List.of("snippet"));
         request.setQ(query);
         request.setType(List.of("video"));
-        request.setMaxResults((long) Math.min(maxResults, 50));
-        request.setOrder(category.equals("Gaming") ? "date" : "relevance");
+        request.setMaxResults(25L);
+        request.setOrder(category.equals("Gaming") ? "date" : "relevance"); // only new gaming videos
 
         SearchListResponse response = request.execute();
+        List<SearchResult> results = response.getItems();
 
-        int count = 0;
-        for (SearchResult result : response.getItems()) {
-            System.out.println("   " + (++count) + ". " + result.getSnippet().getTitle());
-            System.out.println("      https://youtube.com/watch?v=" + result.getId().getVideoId());
+        if (results == null || results.isEmpty()) {
+            System.out.println("   ⚠️ Not found");
+            return;
         }
-        if (count == 0) System.out.println("   ⚠️ Nothing found");
+
+        int displayed = 0;
+        for (SearchResult result : results) {
+            String title = result.getSnippet().getTitle();
+
+            // Don't show liked videos
+            if (watchedTitles.contains(title.toLowerCase().trim())) {
+                continue;
+            }
+
+            System.out.printf("   %d. %s%n", ++displayed, title);
+            System.out.printf("      https://youtube.com/watch?v=%s%n", result.getId().getVideoId());
+
+            if (displayed >= limit) break;
+        }
+
+        if (displayed == 0) {
+            System.out.println("   ⚠️ All searched videos are liked by user.");
+        }
+    }
+
+    private static class VideoDetails {
+        private final String categoryId;
+        private final String durationISO;
+
+        public VideoDetails(String categoryId, String durationISO) {
+            this.categoryId = categoryId;
+            this.durationISO = durationISO;
+        }
+        public String getCategoryId() { return categoryId; }
+        public String getDurationISO() { return durationISO; }
     }
 }

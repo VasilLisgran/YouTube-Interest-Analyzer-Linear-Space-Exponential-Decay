@@ -15,7 +15,7 @@ def clean_text(text):
     text = re.sub(r'https?://\S+|www\.\S+', ' ', text)
     text = re.sub(r'@\S+', ' ', text)
     
-    text = re.sub(r'\b\d+\b', ' ', text)  # числа
+    text = re.sub(r'\b\d+\b', ' ', text)  # numbers
     
     text = re.sub(r'\s+', ' ', text).strip()
     

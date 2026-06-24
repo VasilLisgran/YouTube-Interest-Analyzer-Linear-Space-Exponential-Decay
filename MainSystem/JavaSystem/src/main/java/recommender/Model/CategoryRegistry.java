@@ -77,4 +77,14 @@ public class CategoryRegistry {
     public boolean isValidCategory(String id) {
         return idToName.containsKey(id);
     }
+
+    public String getCategoryNameByIndex(int index) {
+        for (Map.Entry<String, Integer> entry : idToIndex.entrySet()) {
+            if (entry.getValue() == index) {
+                String categoryId = entry.getKey();
+                return idToName.get(categoryId);
+            }
+        }
+        return "Unknown";
+    }
 }

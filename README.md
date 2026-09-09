@@ -309,9 +309,4 @@ imbalance). The engineering notes:
 - `sentence-transformers/LaBSE` is downloaded from Hugging Face on first run of any LaBSE-backed
   command; sandboxed or air-gapped environments need to pre-fetch or vendor the model.
 
-## License and data provenance
 
-Code and data in this repository are released under CC BY 4.0, matching the licence of the
-article. All liked-video histories in `data/` were exported with the account holders' knowledge
-and consent; no third-party account data was accessed. See the paper's Declarations section for
-the full statement.

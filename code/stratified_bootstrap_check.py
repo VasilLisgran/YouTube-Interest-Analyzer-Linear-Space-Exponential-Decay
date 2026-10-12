@@ -10,8 +10,12 @@ series (never crossing the boundary), concatenates the two account-specific
 resamples, and reports the resulting percentile CI for comparison, at every
 block length used in the paper (1-4).
 """
+from pathlib import Path
+
 import numpy as np
 import chrono_split as cs
+
+DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
 
 
 class Args:
@@ -32,7 +36,7 @@ USERS = ['user_videos_u2.json', 'user_videos_u3.json']
 
 def per_origin_diffs(path, lam=0.95):
     a = Args()
-    ev = cs.load(path, 'continuous_log')
+    ev = cs.load(str(DATA_DIR / path), 'continuous_log')
     res = cs.evaluate_account(ev, GRID, a, seed=0)
     out = {}
     for m in cs.METRICS:

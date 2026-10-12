@@ -10,8 +10,12 @@ differences. We enumerate this exactly when feasible (2**28 is too large,
 so we Monte Carlo with a large number of random sign patterns) and report
 the two-sided p-value as the fraction of |permuted mean| >= |observed mean|.
 """
+from pathlib import Path
+
 import numpy as np
 import chrono_split as cs
+
+DATA_DIR = Path(__file__).resolve().parent.parent / 'data'
 
 REPS = 200_000
 
@@ -34,7 +38,7 @@ USERS = ['user_videos_u2.json', 'user_videos_u3.json']
 
 def per_origin_diffs(path, lam=0.95):
     a = Args()
-    ev = cs.load(path, 'continuous_log')
+    ev = cs.load(str(DATA_DIR / path), 'continuous_log')
     res = cs.evaluate_account(ev, GRID, a, seed=0)
     out = {}
     for m in cs.METRICS:

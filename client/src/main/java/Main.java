@@ -15,7 +15,7 @@ import java.util.*;
 public class Main {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String PYTHON_DIR = "PythonSystem";
+    private static final String PYTHON_DIR = "code";
     private static final String PYTHON_SCRIPT = "clusters.py";
 
     public static void main(String[] args) {

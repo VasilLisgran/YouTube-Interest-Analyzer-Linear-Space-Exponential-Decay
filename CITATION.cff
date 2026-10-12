@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this code, data or logs, please cite the article and this repository."
+title: "Code, data and logs for: Does Temporal Decay Help a YouTube Interest Model? A Rolling-Origin Study with a No-Decay Control"
+type: software
+authors:
+  - family-names: Kalinkin
+    given-names: "Vasiliy A."
+    orcid: "https://orcid.org/0009-0007-8691-3474"
+    affiliation: "Saint Petersburg State University of Economics (UNECON)"
+repository-code: "https://github.com/VasilLisgran/YouTube-Interest-Analyzer-Linear-Space-Exponential-Decay"
+license: MIT
+# Add at release time, after the Zenodo deposit:
+# version: 1.0.0
+# date-released: YYYY-MM-DD
+# doi: 10.5281/zenodo.XXXXXXX

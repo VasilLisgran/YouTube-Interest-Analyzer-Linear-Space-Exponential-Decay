@@ -1,0 +1,5 @@
+events table: 672366 rows; columns: ['log_id', 'user_id', 'video_id', 'watch_date', 'subscribed', 'playlist_name']
+meta table: 473125 videos
+users written: 82; events kept: 567529
+dropped rows by reason: {'no_category': 104534, 'unmapped_category': 303}
+unmapped categories (name: rows): {'id44': 248, 'id43': 38, 'id30': 17}

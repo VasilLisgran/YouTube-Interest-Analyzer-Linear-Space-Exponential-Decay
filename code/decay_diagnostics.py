@@ -15,12 +15,17 @@ contribution weight * lambda**days_ago independently of the Java code, using
 the same reference date and lambda used for that run (read from the matching
 run_manifest_<user>.json if available, or passed explicitly).
 
+Usage:
+    python3 decay_diagnostics.py --input data/user_videos_u1.json \
+            --reference-date 2026-08-26 --lambda 0.95 --max-days 360
 """
 import argparse
 from collections import defaultdict
 from datetime import date
 
+# one loader, one deduplication key, one weighting definition.
 from pipeline_common import WEIGHT_SCHEMES, load_events
+
 
 def main():
     ap = argparse.ArgumentParser()

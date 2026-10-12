@@ -1,3 +1,10 @@
+"""make_figure1.py -- acc@1 and recall@3 across the lambda grid for the two
+accounts that qualify under the disjoint-window protocol, with the
+lambda = 1.0 no-decay control marked.
+
+Usage:
+    python3 make_figure1.py --input chrono_split.json --output figure1.png
+"""
 import argparse
 import json
 
@@ -6,6 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 LAMS = ['0.8', '0.9', '0.95', '0.98', '0.99', '0.995', '0.999', '1.0']
+
 
 def main():
     ap = argparse.ArgumentParser()

@@ -9,7 +9,3 @@ authors:
     affiliation: "Saint Petersburg State University of Economics (UNECON)"
 repository-code: "https://github.com/VasilLisgran/YouTube-Interest-Analyzer-Linear-Space-Exponential-Decay"
 license: MIT
-# Add at release time, after the Zenodo deposit:
-# version: 1.0.0
-# date-released: YYYY-MM-DD
-# doi: 10.5281/zenodo.XXXXXXX

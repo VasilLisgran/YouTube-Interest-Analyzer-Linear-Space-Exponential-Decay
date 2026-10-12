@@ -1,3 +1,31 @@
+"""
+sweeps.py — sensitivity analyses.
+
+Two experiments, both offline (no YouTube API, no quota):
+
+  --mode clustering
+      Sweeps DBSCAN eps and compares against HDBSCAN, per account and per
+      category. Motivation: with eps fixed at 0.51 the noise fraction is
+      strongly scale-dependent (Spearman/Pearson r ~ -0.8 between log category
+      size and noise fraction across the collected accounts). Small accounts
+      lose 85-92% of points to noise; the largest account produces clusters
+      with NEGATIVE silhouette on its biggest categories. A single global eps
+      therefore cannot be defended as a fixed constant, and HDBSCAN -- which
+      selects density locally -- is the natural comparison.
+
+  --mode lambda
+      Sweeps the decay constant and reports the mean effective sample size
+      (Kish N_eff) per account. Only meaningful for accounts whose likes are
+      spread over time: an account where every like was made on the same day
+      has N_eff == n for every lambda by construction, and contributes no
+      temporal signal at all. The script detects and flags such accounts
+      rather than silently averaging them in.
+
+Usage:
+    python3 sweeps.py --mode clustering --users data/user_videos_u*.json
+    python3 sweeps.py --mode lambda --users data/user_videos_u*.json \
+            --reference-date 2026-08-26
+"""
 import argparse
 import json
 import re
@@ -11,14 +39,18 @@ from sklearn.cluster import DBSCAN, HDBSCAN
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import normalize
 
+# cleaning, deduplication and duration weighting come from the shared
+# module, so this script cannot drift away from clusters.py / evaluate_v2.py.
 from pipeline_common import WEIGHT_SCHEMES, load_events
 
 warnings.filterwarnings('ignore')
 
 _MODEL = {}
 
+
 def load(path, weight_scheme='continuous_log'):
     return load_events(path, weight_scheme=weight_scheme, dedup_key='video_id')
+
 
 def embed(texts, kind='labse'):
     if kind == 'labse':
@@ -34,7 +66,9 @@ def embed(texts, kind='labse'):
                             min_df=2).fit_transform(texts).toarray()
     return normalize(np.asarray(X, dtype=float))
 
+
 def score_labels(X, labels):
+    """Returns (n_clusters, noise_fraction, silhouette or None)."""
     mask = labels != -1
     n_clusters = len(set(labels[mask]))
     noise = float((~mask).mean())
@@ -42,6 +76,7 @@ def score_labels(X, labels):
     if mask.sum() >= 2 and n_clusters >= 2:
         sil = float(silhouette_score(X[mask], labels[mask], metric='cosine'))
     return n_clusters, noise, sil
+
 
 def mode_clustering(args):
     eps_grid = [float(e) for e in args.eps_grid.split(',')]
@@ -181,6 +216,7 @@ def mode_lambda(args):
         print('BURST accounts (exclude from any temporal-decay claim): '
               + ', '.join(burst_accts))
     print('written: sweep_lambda.json')
+
 
 def main():
     ap = argparse.ArgumentParser()

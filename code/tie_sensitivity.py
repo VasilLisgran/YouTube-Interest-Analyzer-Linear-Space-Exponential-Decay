@@ -1,72 +1,52 @@
-"""Tie-breaking sensitivity for the confirmatory comparison.
+"""tie_sensitivity.py -- how much of the reported difference is tie-break noise?
 
-Re-runs the whole rolling-origin experiment under independent seeds of the
-tie-breaking jitter and reports the pooled lambda=0.95-vs-control difference
-each time. Uses chrono_split.py unchanged.
+Categories with no events share a score of zero and must be ordered somehow.
+chrono_split.py breaks those ties with a hash, which is deterministic but
+arbitrary: a different hash salt gives a different, equally valid ordering.
+This script re-runs the confirmatory comparison under many salts and reports
+the spread, so that the size of the effect can be compared against the size of
+the arbitrariness.
 """
-import argparse
+import math, sys
+from collections import Counter
 import numpy as np
 import chrono_split as cs
 
+users = sys.argv[1:] or ['data_real/user_videos_u2.json', 'data_real/user_videos_u3.json']
+N_SALT = 40
+W_LIST = [None, 360]
+for W in W_LIST:
+  out = {m: [] for m in cs.METRICS}
+  for salt in range(N_SALT):
+      cs.TIE_SALT = f's{salt}'
+      diffs = {m: [] for m in cs.METRICS}
+      for path in users:
+          ev = cs.load(path, 'continuous_log')
+          if len({e['date'] for e in ev}) < 20:
+              continue
+          cuts = cs.place_origins(ev, 'disjoint', 5, 60, 30, 10)
+          if len(cuts) < 3:
+              continue
+          for T, tr, te in cuts:
+              tg = [e['category'] for e in te]; cnt = Counter(tg)
+              ideal = sorted(cnt.values(), reverse=True)[:5]
+              idcg = sum(g / math.log2(i + 2) for i, g in enumerate(ideal))
+              sc = {}
+              for lam in (0.95, 1.0):
+                  r = cs.rank_categories(cs.build_profile(tr, T, lam, W),
+                                         list(cs.REGISTERED_CATEGORIES), str(T))
+                  sc[lam] = cs.score_ranking(r, tg, cnt, idcg)
+              for m in cs.METRICS:
+                  diffs[m].append(sc[0.95][m] - sc[1.0][m])
+      for m in cs.METRICS:
+          out[m].append(float(np.mean(diffs[m])))
 
-class Args:
-    origins = 'disjoint'
-    splits = 5
-    horizon_days = 60
-    min_train = 30
-    min_test = 10
-    min_origins = 3
-    min_distinct_dates = 20
-    random_repeats = 200
-    max_age_days = 0
-
-
-GRID = [0.80, 0.90, 0.95, 0.98, 0.99, 0.995, 0.999, 1.0]
-
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--users', nargs='+', required=True)
-    ap.add_argument('--seeds', type=int, default=40)
-    ap.add_argument('--block', type=int, default=2)
-    ap.add_argument('--focus', type=float, default=0.95)
-    args = ap.parse_args()
-    a = Args()
-
-    rows = {m: [] for m in cs.METRICS}
-    los = {m: [] for m in cs.METRICS}
-    his = {m: [] for m in cs.METRICS}
-    print(f'{"seed":>5}' + ''.join(f'{m:>26}' for m in cs.METRICS))
-    for s in range(args.seeds):
-        pooled = {m: [] for m in cs.METRICS}
-        for p in args.users:
-            ev = cs.load(p, 'continuous_log')
-            if len({e['date'] for e in ev}) < a.min_distinct_dates:
-                continue
-            r = cs.evaluate_account(ev, GRID, a, seed=s)
-            if not r or not r.get('ok'):
-                continue
-            for m in cs.METRICS:
-                x = np.array(r['per_origin'][str(args.focus)][m], float)
-                y = np.array(r['per_origin']['1.0'][m], float)
-                pooled[m].extend(list(x - y))
-        line = f'{s:5d}'
-        for m in cs.METRICS:
-            d = np.array(pooled[m])
-            lo, hi = cs.block_bootstrap_ci(d, args.block, seed=0)
-            rows[m].append(d.mean()); los[m].append(lo); his[m].append(hi)
-            line += f'  {d.mean():+.4f} [{lo:+.3f},{hi:+.3f}]'
-        print(line)
-
-    print(f'\n--- range over {args.seeds} independent tie-breaking seeds '
-          f'(n=28 origins) ---')
-    for m in cs.METRICS:
-        print(f'  {m:9s} mean diff in [{min(rows[m]):+.4f},{max(rows[m]):+.4f}]'
-              f'   CI lower in [{min(los[m]):+.4f},{max(los[m]):+.4f}]'
-              f'   CI upper in [{min(his[m]):+.4f},{max(his[m]):+.4f}]'
-              f'   CI excludes 0 in {sum(1 for l in los[m] if l > 0)}'
-              f'/{args.seeds} seeds')
-
-
-if __name__ == '__main__':
-    main()
+  lab = 'W = infinity' if W is None else f'W = {W}'
+  print(f'\nconfirmatory comparison (lambda = 0.95 vs control), {lab}, under '
+        f'{N_SALT} independent tie-break salts, 28 origins each')
+  print(f"{'metric':10s} {'mean':>9s} {'sd':>9s} {'min':>9s} {'max':>9s}  "
+        f"{'salts>0':>9s}")
+  for m in cs.METRICS:
+      v = np.array(out[m])
+      print(f'{m:10s} {v.mean():+9.4f} {v.std(ddof=1):9.4f} {v.min():+9.4f} '
+            f'{v.max():+9.4f}  {int((v > 0).sum()):>6d}/{N_SALT}')

@@ -1,3 +1,39 @@
+"""
+evaluate_v2.py -- per-account, leakage-free evaluation of the clustering
+component as a category classifier.
+
+Scope.  This experiment says nothing about temporal decay.  It exists because
+the clustering stage is the only sub-system in the pipeline with checkable
+ground truth, and a component that is used to generate every recommendation
+query should be measured rather than assumed to work.
+
+Design:
+  1. Evaluation is PER ACCOUNT (the system is a per-user tool; a pooled
+     classifier is something it never computes).
+  2. Strong content-based baselines: centroid, kNN, logistic regression over
+     the same embedding space the proposed method already computes.
+  3. Metrics: accuracy, balanced accuracy (macro-recall), macro-F1 and
+     Cohen's kappa, all from scikit-learn, no home-made approximations.
+  4. Clusters AND keyword idf statistics are built from the training split
+     only.
+  5. Embedder is pluggable: 'labse' (the paper's configuration) / 'tfidf' /
+     'char' (offline proxies, for reproducing the pipeline without model
+     downloads).
+
+Changes in this version:
+  - Text cleaning, stop words and deduplication now come from
+         pipeline_common, so this harness and clusters.py cannot drift apart.
+         The deduplication key is video_id, matching every other script; the
+         earlier title-based key is still reachable via --dedup-key title so
+         that the effect of the choice can be measured rather than argued.
+  - --algorithm selects DBSCAN or HDBSCAN for the per-category
+         clustering.  The eps sweep showed that a single global eps cannot
+         serve categories differing by two orders of magnitude in size;
+         HDBSCAN selects density locally and is now the pipeline default.
+
+Usage:
+    python3 evaluate_v2.py --embedder labse --seeds 20 --users data/*.json
+"""
 import argparse
 import json
 import warnings
@@ -17,10 +53,15 @@ from pipeline_common import (STOP_WORDS, category_document_frequency,
 
 warnings.filterwarnings("ignore")
 
+
 def load_user(path, dedup_key='video_id'):
+    """Delegates to the shared loader. Dates are not required here."""
     return load_events(path, dedup_key=dedup_key, require_date=False)
 
+
 def stratified_split(videos, test_frac, seed):
+    """Stratified by category. Categories with <2 items go entirely to train
+    (they cannot be represented on both sides)."""
     rng = np.random.default_rng(seed)
     by_cat = defaultdict(list)
     for v in videos:
@@ -36,7 +77,12 @@ def stratified_split(videos, test_frac, seed):
             (test if j < n_test else train).append(items[i])
     return train, test
 
-_MODEL_CACHE = {}
+
+# --------------------------------------------------------------------------
+# embedders
+# --------------------------------------------------------------------------
+_MODEL_CACHE = {}   # loaded once per process, shared across all users/seeds
+
 
 class Embedder:
     """fit() on train texts only; transform() applies the fitted space.
@@ -82,9 +128,12 @@ class Embedder:
             X = self.vec.transform(texts).toarray()
         return normalize(np.asarray(X, dtype=float))
 
+
+# --------------------------------------------------------------------------
 # proposed method: per-category clustering -> tf*idf keywords -> argmax
+# --------------------------------------------------------------------------
 def cluster_labels(X, algorithm, eps, min_samples):
-    """[V3-8] One place where the clustering algorithm is chosen."""
+    """One place where the clustering algorithm is chosen."""
     if algorithm == 'hdbscan':
         if len(X) < max(2, min_samples) + 1:
             return np.full(len(X), -1)
@@ -92,6 +141,7 @@ def cluster_labels(X, algorithm, eps, min_samples):
                        metric='euclidean', copy=True).fit_predict(X)
     return DBSCAN(eps=eps, min_samples=min_samples,
                   metric='cosine').fit_predict(X)
+
 
 def build_clusters(train, embedder, algorithm, eps, min_samples, top_k):
     by_cat = defaultdict(list)
@@ -128,6 +178,16 @@ def build_clusters(train, embedder, algorithm, eps, min_samples, top_k):
 
 
 def predict_keyword(test, keywords, majority):
+    """Returns (predictions, fallback_rate, indices where a keyword matched).
+
+    fallback_rate is the fraction of test items for which NO cluster keyword
+    matched any token, so the prediction defaulted to the majority class.
+    This number is essential for interpreting the headline accuracy: the
+    majority class alone scores ~0.35 on this data, so a method that falls
+    back most of the time can post a competitive accuracy while doing almost
+    no actual work -- which is exactly the pattern implied by this method
+    ranking 1st on accuracy but last on balanced accuracy, macro-F1 and
+    kappa.  Report accuracy and fallback rate together, never alone."""
     preds, fallbacks, fired_idx = [], 0, []
     for v in test:
         toks = set(v['clean'].split())
@@ -145,7 +205,10 @@ def predict_keyword(test, keywords, majority):
             fallbacks += 1
     return preds, (fallbacks / len(test) if test else 0.0), fired_idx
 
+
+# --------------------------------------------------------------------------
 # one account, one seed
+# --------------------------------------------------------------------------
 def run_split(videos, seed, embedder_kind, algorithm, eps, min_samples, top_k):
     train, test = stratified_split(videos, 0.2, seed)
     if not test:
@@ -198,6 +261,10 @@ def run_split(videos, seed, embedder_kind, algorithm, eps, min_samples, top_k):
         }
     rows['keyword (proposed)']['fallback'] = fallback_rate
 
+    # Accuracy measured ONLY on the items where a keyword actually matched,
+    # plus the majority baseline restricted to those same items.  Overall
+    # accuracy mixes real predictions with majority fallbacks and therefore
+    # cannot be attributed to the method.
     kw_pred = preds['keyword (proposed)']
     if fired_idx:
         yt = [y_te[i] for i in fired_idx]
@@ -231,7 +298,7 @@ def main():
     ap.add_argument('--out', default=None)
     args = ap.parse_args()
 
-    agg = defaultdict(lambda: defaultdict(list))
+    agg = defaultdict(lambda: defaultdict(list))   # method -> metric -> [values]
     per_user = {}
 
     for path in args.users:

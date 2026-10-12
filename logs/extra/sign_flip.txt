@@ -1,4 +1,0 @@
-acc@1       n=28  mean=+0.0191  sign-flip p=0.3742  (sign test p=0.6250, k=3/4 nonzero)
-recall@3    n=28  mean=+0.0314  sign-flip p=0.0226  (sign test p=0.0923, k=10/13 nonzero)
-MRR         n=28  mean=+0.0131  sign-flip p=0.3755  (sign test p=0.5716, k=16/28 nonzero)
-nDCG@5      n=28  mean=+0.0099  sign-flip p=0.6078  (sign test p=0.6900, k=14/25 nonzero)

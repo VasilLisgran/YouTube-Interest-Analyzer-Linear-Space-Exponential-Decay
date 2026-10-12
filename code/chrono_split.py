@@ -1,4 +1,75 @@
+"""
+chrono_split.py -- does exponential temporal decay actually help predict
+future likes?
+
+This is the paper's decisive experiment. N_eff measures how concentrated a
+profile is and increases monotonically as lambda -> 1, so it is maximised by
+having NO decay at all; it reports the cost of decay and says nothing about its
+benefit. Only a predictive task can weigh the two.
+
+Protocol (rolling origin / forward chaining):
+
+  for each origin T:
+      profile  = sum over likes with date <= T of  w(duration) * lambda^(T-date)
+                 restricted to ages <= W
+      ranking  = categories sorted by profile score
+      targets  = categories of the likes in (T, T + horizon]
+      score the ranking against those targets
+
+lambda = 1.0 is in the grid on purpose: it is the no-decay control. If no
+lambda < 1.0 beats lambda = 1.0, the decay component is not earning its place.
+
+--------------------------------------------------------------------------
+Changes in this version (v3), all of them responses to referee-style
+objections raised against v2:
+
+  - ONE deduplication key across the whole pipeline: video_id, falling
+         back to the title only when no id is present.  evaluate_v2.py and
+         clusters.py now use the identical loader semantics, so the account
+         sizes quoted anywhere in the paper come from a single convention.
+
+  - Weights are RECOMPUTED from duration_seconds through an explicit
+         weight scheme rather than read from the 'weight' field the Java
+         client serialised.  The serialised field is the ORIGINAL scheme
+         rounded to an integer; recomputing makes the scheme an experimental
+         factor (--weight-scheme) instead of a property of the data file, so
+         the whole experiment can be repeated under continuous_log and
+         uniform.  ORIGINAL is retained only as a historical baseline.
+
+  - The truncation age W is an explicit factor (--max-age-days).  The
+         deployed Java client uses 360; the analysis defaults to no
+         truncation so that lambda = 1.0 is a genuine no-forgetting control
+         and not a sliding window.  Both settings are runnable, so the
+         difference can be measured rather than argued about.
+
+  - Origin placement mode.  'disjoint' (default) places origins one
+         horizon apart, so that no two evaluation windows share a single
+         like; this makes the origin, not the account, a usable unit of
+         analysis.  'fraction' reproduces the earlier protocol (n_splits
+         origins at evenly spaced fractions of the calendar span) and is
+         kept so that the previously published numbers remain reproducible.
+
+  - Accounts must supply at least --min-origins usable origins.  Under
+         'disjoint' this is a mechanical consequence of the horizon and is
+         fixed before any result is seen; it replaces the earlier post-hoc
+         'decisive subset' argument.
+
+  - Per-origin differences against the control are retained and tested:
+         exact sign test and Wilcoxon signed-rank over origins, plus a
+         moving-block bootstrap CI (block length --block) because
+         consecutive origins share training data even when their evaluation
+         windows are disjoint.
+
+  - The random-ranking floor is averaged over --random-repeats shuffles
+         per origin instead of a single draw, so the floor is not itself a
+         high-variance quantity.
+
+Usage:
+    python3 chrono_split.py --users data/user_videos_u*.json
+    python3 chrono_split.py --users ... --origins fraction --splits 5   # legacy
+"""
 import argparse
+import hashlib
 import json
 import math
 from collections import Counter, defaultdict
@@ -6,6 +77,10 @@ from datetime import date, timedelta
 
 import numpy as np
 
+# --------------------------------------------------------------------------
+# duration -> weight schemes, mirroring
+# YouTubeDataLoader.WeightScheme one-for-one.
+# --------------------------------------------------------------------------
 WEIGHT_SCHEMES = {
     # historical pilot scheme; discontinuous at 60 s (10 -> 101.6)
     'original': lambda s: 10.0 if s <= 60 else 40.0 + 15.0 * math.log(s),
@@ -17,8 +92,26 @@ WEIGHT_SCHEMES = {
 
 PLACEHOLDER_TITLES = ('private video', 'deleted video')
 
+# The candidate set ranked at every origin. Fixing it to the registry
+# rather than deriving it from the account's own history removes a subtle
+# look-ahead: a set derived from all of an account's events encodes the fact
+# that certain categories never occur, including in the not-yet-seen test
+# windows. The leak does not bias the decay-vs-control comparison, since the
+# same set is used under every lambda, but it inflates the random-ranking floor
+# (1/15 instead of 1/17) and it is exactly the kind of thing this paper
+# criticises elsewhere. Ranking all 17 registered categories at every origin
+# leaves acc@1 and recall@3 unchanged to three decimals and lowers the floor to
+# its correct level.
+REGISTERED_CATEGORIES = (
+    'Film & Animation', 'Autos & Vehicles', 'Music', 'Pets & Animals', 'Sports',
+    'Short Movies', 'Travel & Events', 'Gaming', 'Videoblogging',
+    'People & Blogs', 'Comedy', 'Entertainment', 'News & Politics',
+    'Howto & Style', 'Education', 'Science & Technology',
+    'Nonprofits & Activism')
+
+
 def load(path, weight_scheme='continuous_log'):
-    """[V3-1][V3-2] Single deduplication convention, weights recomputed."""
+    """Single deduplication convention, weights recomputed."""
     with open(path, encoding='utf-8') as f:
         raw = json.load(f)
     wfun = WEIGHT_SCHEMES[weight_scheme]
@@ -44,6 +137,7 @@ def load(path, weight_scheme='continuous_log'):
 
 
 def build_profile(train, split_date, lam, max_age=None):
+    """R_c = sum of w * lambda^age over events with 0 <= age <= W."""
     score = defaultdict(float)
     for e in train:
         age = (split_date - e['date']).days
@@ -55,11 +149,39 @@ def build_profile(train, split_date, lam, max_age=None):
     return score
 
 
-def rank_categories(score, all_cats, rng):
-    items = [(c, score.get(c, 0.0)) for c in all_cats]
-    jitter = rng.random(len(items)) * 1e-12
-    order = sorted(range(len(items)), key=lambda i: (-items[i][1], jitter[i]))
-    return [items[i][0] for i in order]
+TIE_SALT = ''   # varied by tie_sensitivity.py to probe tie-break noise
+
+
+def _tie_key(origin_key, category):
+    """A stable pseudo-random key for breaking ties between categories
+    that hold the same score -- in practice the categories with no events at
+    all, which all sit at 0.
+
+    Deriving it from a hash of (origin, category) rather than from a shared
+    RNG stream makes the ranking independent of how many times any other part
+    of the program happened to draw from that stream. The earlier version drew
+    the jitter from the caller's RNG, so two scripts that evaluated the same
+    configuration but issued a different number of draws (chrono_split.py runs
+    an eight-value lambda grid and 200 shuffles per origin; window_control.py
+    runs six conditions and none) broke ties differently and reported MRR
+    values that differed by 0.001. Nothing was wrong with either number, but a
+    quantity that changes with call order is not reproducible, and the metrics
+    most exposed to it -- MRR and nDCG@5, which read positions below the top of
+    the ranking -- are exactly the ones this paper reports as null. Hashing
+    removes the dependence: the same origin and category always produce the
+    same key, in any script, in any order, in any process.
+    """
+    h = hashlib.blake2b(f'{TIE_SALT}|{origin_key}|{category}'.encode(),
+                        digest_size=8).digest()
+    return int.from_bytes(h, 'big')
+
+
+def rank_categories(score, all_cats, origin_key):
+    """Descending by score; ties broken by a stable hash so that neither
+    alphabetical order nor RNG call history can leak an advantage."""
+    return sorted(all_cats,
+                  key=lambda c: (-score.get(c, 0.0), _tie_key(origin_key, c)))
+
 
 def score_ranking(ranking, targets, counts, idcg, k_recall=3, k_ndcg=5):
     pos = {c: i for i, c in enumerate(ranking)}
@@ -88,8 +210,9 @@ def score_ranking(ranking, targets, counts, idcg, k_recall=3, k_ndcg=5):
 
 METRICS = ['acc@1', 'recall@3', 'MRR', 'nDCG@5']
 
+
 def place_origins(events, mode, n_splits, horizon_days, min_train, min_test):
-    """[V3-4] Returns a list of (T, train, test)."""
+    """Returns a list of (T, train, test)."""
     dates = [e['date'] for e in events]
     first, last = dates[0], dates[-1]
     hz = timedelta(days=horizon_days)
@@ -98,10 +221,11 @@ def place_origins(events, mode, n_splits, horizon_days, min_train, min_test):
         cands = [first + (last - first) * float(f)
                  for f in np.linspace(0.5, 0.85, n_splits)]
     else:
-
+        # one horizon apart: consecutive evaluation windows are
+        # disjoint, so no like is scored at two origins.
         if len(events) < min_train:
             return []
-        warm = dates[min_train - 1]
+        warm = dates[min_train - 1]   # earliest date with min_train events behind it
         cands, T = [], warm
         while T + hz <= last:
             cands.append(T)
@@ -115,9 +239,10 @@ def place_origins(events, mode, n_splits, horizon_days, min_train, min_test):
             cuts.append((T, train, test))
     return cuts
 
+
 def evaluate_account(events, lam_grid, args, seed=0):
     rng = np.random.default_rng(seed)
-    all_cats = sorted({e['category'] for e in events})
+    all_cats = list(REGISTERED_CATEGORIES)   # no look-ahead
     dates = [e['date'] for e in events]
     span = (dates[-1] - dates[0]).days
     if span <= 0:
@@ -133,15 +258,23 @@ def evaluate_account(events, lam_grid, args, seed=0):
     per_origin['random'] = {m: [] for m in METRICS}
 
     for T, train, test in cuts:
+        # both the tie-break and the shuffles are keyed on the origin,
+        # so neither depends on the order in which origins are processed.
+        origin_key = str(T)
+        rng = np.random.default_rng(
+            int.from_bytes(hashlib.blake2b(origin_key.encode(),
+                                           digest_size=8).digest(), 'big')
+            % (2 ** 32))
         targets = [e['category'] for e in test]
         counts = Counter(targets)
         ideal = sorted(counts.values(), reverse=True)[:5]
         idcg = sum(g / math.log2(i + 2) for i, g in enumerate(ideal))
         for lam in lam_grid:
             score = build_profile(train, T, lam, max_age)
-            ranking = rank_categories(score, all_cats, rng)
+            ranking = rank_categories(score, all_cats, origin_key)
             for m, v in score_ranking(ranking, targets, counts, idcg).items():
                 per_origin[lam][m].append(v)
+        # averaged random floor
         acc = {m: [] for m in METRICS}
         for _ in range(args.random_repeats):
             shuffled = list(all_cats)
@@ -160,7 +293,12 @@ def evaluate_account(events, lam_grid, args, seed=0):
             'means': {str(k): d for k, d in means.items()},
             '_means_raw': means}
 
+
+# --------------------------------------------------------------------------
+# statistics over origins
+# --------------------------------------------------------------------------
 def sign_test_p(diffs):
+    """Two-sided exact binomial sign test, zeros discarded."""
     nz = [d for d in diffs if d != 0]
     n = len(nz)
     if n == 0:
@@ -171,6 +309,7 @@ def sign_test_p(diffs):
 
 
 def block_bootstrap_ci(diffs, block, reps=10000, seed=0):
+    """Moving-block bootstrap CI for the mean of a dependent sequence."""
     x = np.asarray(diffs, dtype=float)
     n = len(x)
     if n == 0:
@@ -184,6 +323,7 @@ def block_bootstrap_ci(diffs, block, reps=10000, seed=0):
     samples = (idx[:, :, None] + offs[None, None, :]).reshape(reps, -1)[:, :n]
     means = x[samples].mean(axis=1)
     return (float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5)))
+
 
 def origin_stats(res, lam, metric, block, seed=0):
     a = np.array(res['per_origin'][str(lam)][metric], dtype=float)
@@ -312,6 +452,7 @@ def main():
         print(f'  {metric:9s}: best lambda={best_lam}  diff={best_diff:+.4f}  '
               f'wins={wins}/{len(per_account)}  -> {verdict}')
 
+    # ---------------- per-origin tests ----------------
     print(f'\n--- per-origin paired comparison, lambda={args.focus_lambda} '
           f'vs control (moving-block bootstrap, block={args.block}) ---')
     print(f'{"account":8s} {"metric":9s} {"n":>3s} {"mean d":>8s} '

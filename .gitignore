@@ -25,3 +25,11 @@ tokens/
 # Raw YouTube API metadata and third-party datasets are not redistributed
 external/cache/
 external/raw/
+
+# Replication working files (YouTube API data must not be published; see external/README_external.md)
+external/users/
+external/users_allwatches/
+external/meta.jsonl
+external/meta.csv
+external/log_selected.csv
+external/youtube_watch_log.csv

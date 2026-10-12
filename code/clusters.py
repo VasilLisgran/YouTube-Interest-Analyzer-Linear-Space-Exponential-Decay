@@ -1,3 +1,42 @@
+"""
+clusters.py — per-category semantic clustering of liked-video titles.
+
+Changes relative to the pilot client:
+  [FIX-1] Input and output paths are CLI arguments, so six accounts can be
+          processed without editing the file between runs.
+  [FIX-2] Keyword ranking now uses tf * idf, as described in Section 3.3 of the
+          manuscript. The previous version ranked by raw frequency only, so the
+          manuscript described a method the released code did not implement.
+  [FIX-3] clean_text now strips URLs and @mentions BEFORE punctuation. In the
+          previous version the punctuation pass ran first, which removed the
+          '//' and '@' anchors and made both regexes unreachable.
+  [FIX-4] The stop-word list no longer contains corpus-specific tokens
+          ('woman', 'cry', 'birds', 'nooo', 'dahaka', ...). Hand-removing words
+          after inspecting one's own data injects analyst knowledge of the
+          labels into the model and is not defensible in a paper about
+          evaluation hygiene. Only closed-class function words, platform
+          boilerplate and calendar terms remain.
+  [FIX-5] eps, min_samples and top_k are CLI arguments so the paper can report
+          a sensitivity analysis instead of three unexplained constants.
+  [FIX-6] A per-run summary (cluster counts, noise fraction, silhouette) is
+          emitted; silhouette is an intrinsic measure of cluster quality and is
+          the appropriate primary metric for a clustering component, rather
+          than the downstream classification proxy.
+  [FIX-7] HDBSCAN is the default algorithm. The eps sweep showed that a single
+          global eps cannot serve categories differing by two orders of
+          magnitude in size: at eps = 0.51 cluster coverage ranged from 0.54 on
+          the largest account down to 0.08 on the smallest, and coverage is what
+          caps the downstream keyword method's fallback rate. HDBSCAN selects
+          density locally. DBSCAN remains available as --algorithm dbscan.
+  - Text cleaning, stop words, deduplication (by video_id) and keyword
+          scoring now come from pipeline_common, shared with evaluate_v2.py,
+          chrono_split.py, sweeps.py and decay_diagnostics.py, so the scripts
+          cannot drift apart again.
+
+Usage:
+    python3 clusters.py --input ../data/user_videos_u1.json \
+                        --output ../data/clusters_result_u1.json
+"""
 import argparse
 import json
 from collections import Counter, defaultdict
@@ -15,15 +54,18 @@ from pipeline_common import (STOP_WORDS, category_document_frequency,
 
 MODEL_NAME = 'sentence-transformers/LaBSE'
 
+
 def load(path):
     return load_events(path, dedup_key='video_id')
+
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--input', required=True)
     ap.add_argument('--output', required=True)
-    ap.add_argument('--eps', type=float, default=0.51)
+    ap.add_argument('--eps', type=float, default=0.51)          # [FIX-5]
     ap.add_argument('--min-samples', type=int, default=2)
+    # [FIX-7] Algorithm choice; see the module docstring.
     ap.add_argument('--algorithm', default='hdbscan',
                     choices=['hdbscan', 'dbscan'])
     ap.add_argument('--top-k', type=int, default=5)
@@ -58,6 +100,7 @@ def main():
             labels = DBSCAN(eps=args.eps, min_samples=args.min_samples,
                             metric='cosine').fit_predict(emb)
 
+        # [FIX-6] intrinsic quality, computed on non-noise points only
         sil = None
         mask = labels != -1
         if mask.sum() >= 2 and len(set(labels[mask])) >= 2:
@@ -76,6 +119,7 @@ def main():
                 for w in v['clean'].split():
                     if w not in STOP_WORDS and len(w) > 2:
                         tf[w] += 1
+            # [FIX-2] tf * idf over categories, deterministic tie-break by word
             top = keyword_score(tf, df, n_cat, args.top_k)
             if top:
                 keywords[str(lab)] = top

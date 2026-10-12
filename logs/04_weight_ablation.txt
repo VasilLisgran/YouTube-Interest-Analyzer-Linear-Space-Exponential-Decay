@@ -26,6 +26,15 @@ Categories where N_eff < 1.5 are effectively single-event profiles.
 Dominant events per category:
 
   [Science & Technology]  N_eff=1.36  n=8
+        0.25  (117d ago, raw_weight=102.62)  Невыгодный психолог                          #17pro #iphone #психолог
+        0.04  (109d ago, raw_weight=10.0)  Методы минимизации #алгоритмы #олимпиады #программирование #coding #co
+        0.00  (200d ago, raw_weight=137.5)  Simple Fractal rendering
+
+  [Nonprofits & Activism]  N_eff=1.00  n=1
+        0.03  (116d ago, raw_weight=10.0)  Домашний сурикат боится 😅 #юмор #смехпродлеваетжизнь
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.02  (122d ago, raw_weight=10.0)  One Smart Raven
 --- u3 / original ---
 reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=original
 events skipped (no liked_at / weight): 0
@@ -53,6 +62,17 @@ Categories where N_eff < 1.5 are effectively single-event profiles.
 Dominant events per category:
 
   [Howto & Style]  N_eff=1.20  n=10
+       75.77  (  6d ago, raw_weight=103.07)  КАК КУПИТЬ НОЖ В МАГАЗИНЕ ?!#юмор #нож #приколы #EDC
+        6.43  ( 54d ago, raw_weight=102.62)  Ich habe einen Schulbus vergraben (Geheimer Luxus-Bunker!) 🤯 [KI-Konze
+        0.77  ( 50d ago, raw_weight=10.0)  Est-ce que McDonalds's peut remplir mon seau géant de Nuggets ?
+
+  [News & Politics]  N_eff=1.46  n=7
+        3.47  ( 70d ago, raw_weight=125.8)  "Круглый" навёл суету в Озоне. Real video
+        0.42  ( 62d ago, raw_weight=10.0)  Забавное видео из такси стало хитом.
+        0.18  (127d ago, raw_weight=121.89)  Скандал у Соловьёва! Жириновский мокрый, а Собчак бл! Дебаты 2018 на Р
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.03  (162d ago, raw_weight=102.15)  WOULD YOU SURVIVE...? #shorts
 ### weight scheme: continuous_log ###
 --- u2 / continuous_log ---
 reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=continuous_log
@@ -81,6 +101,10 @@ Categories where N_eff < 1.5 are effectively single-event profiles.
 Dominant events per category:
 
   [Nonprofits & Activism]  N_eff=1.00  n=1
+        0.13  (116d ago, raw_weight=48.87)  Домашний сурикат боится 😅 #юмор #смехпродлеваетжизнь
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.11  (122d ago, raw_weight=56.76)  One Smart Raven
 --- u3 / continuous_log ---
 reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=continuous_log
 events skipped (no liked_at / weight): 0
@@ -108,6 +132,12 @@ Categories where N_eff < 1.5 are effectively single-event profiles.
 Dominant events per category:
 
   [Howto & Style]  N_eff=1.47  n=10
+       46.53  (  6d ago, raw_weight=63.29)  КАК КУПИТЬ НОЖ В МАГАЗИНЕ ?!#юмор #нож #приколы #EDC
+        4.54  ( 50d ago, raw_weight=58.98)  Est-ce que McDonalds's peut remplir mon seau géant de Nuggets ?
+        3.94  ( 54d ago, raw_weight=62.84)  Ich habe einen Schulbus vergraben (Geheimer Luxus-Bunker!) 🤯 [KI-Konze
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.02  (162d ago, raw_weight=62.38)  WOULD YOU SURVIVE...? #shorts
 ### weight scheme: uniform ###
 --- u2 / uniform ---
 reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=uniform
@@ -136,6 +166,10 @@ Categories where N_eff < 1.5 are effectively single-event profiles.
 Dominant events per category:
 
   [Nonprofits & Activism]  N_eff=1.00  n=1
+        0.00  (116d ago, raw_weight=1.0)  Домашний сурикат боится 😅 #юмор #смехпродлеваетжизнь
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.00  (122d ago, raw_weight=1.0)  One Smart Raven
 --- u3 / uniform ---
 reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=uniform
 events skipped (no liked_at / weight): 0
@@ -163,3 +197,4 @@ Categories where N_eff < 1.5 are effectively single-event profiles.
 Dominant events per category:
 
   [Pets & Animals]  N_eff=1.00  n=1
+        0.00  (162d ago, raw_weight=1.0)  WOULD YOU SURVIVE...? #shorts

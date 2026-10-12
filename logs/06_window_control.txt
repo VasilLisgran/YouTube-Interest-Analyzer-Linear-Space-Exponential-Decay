@@ -1,0 +1,47 @@
+candidate set: all 17 registered categories
+[skip] ../data/user_videos_u1.json
+../data/user_videos_u2.json: 13 origins
+../data/user_videos_u3.json: 15 origins
+[skip] ../data/user_videos_u7.json
+
+=== means over 28 origins ===
+condition                            acc@1  recall@3       MRR    nDCG@5
+decay lambda=0.95, W=inf             0.381     0.673     0.562     0.909
+control lambda=1.0, W=inf            0.362     0.642     0.548     0.899
+window lambda=1.0, W=30              0.317     0.583     0.492     0.789
+window lambda=1.0, W=60              0.341     0.608     0.518     0.831
+window lambda=1.0, W=90              0.345     0.603     0.519     0.842
+window lambda=1.0, W=180             0.378     0.652     0.554     0.888
+window lambda=1.0, W=360             0.390     0.653     0.563     0.906
+
+=== per-origin difference vs the W=inf no-forgetting control (block bootstrap, block=2) ===
+-- decay lambda=0.95, W=inf
+   acc@1     mean=+0.019  95% CI [-0.026,+0.084]  better=3/4  p_sign=0.6250
+   recall@3  mean=+0.031  95% CI [+0.009,+0.061]  better=10/13  p_sign=0.0923  <- excludes zero
+   MRR       mean=+0.013  95% CI [-0.016,+0.051]  better=15/27  p_sign=0.7011
+   nDCG@5    mean=+0.010  95% CI [-0.030,+0.055]  better=14/25  p_sign=0.6900
+-- window lambda=1.0, W=30
+   acc@1     mean=-0.045  95% CI [-0.124,+0.052]  better=4/10  p_sign=0.7539
+   recall@3  mean=-0.059  95% CI [-0.159,+0.013]  better=8/18  p_sign=0.8145
+   MRR       mean=-0.057  95% CI [-0.129,+0.013]  better=9/26  p_sign=0.1686
+   nDCG@5    mean=-0.111  95% CI [-0.223,-0.006]  better=9/26  p_sign=0.1686  <- excludes zero
+-- window lambda=1.0, W=60
+   acc@1     mean=-0.021  95% CI [-0.097,+0.047]  better=2/6  p_sign=0.6875
+   recall@3  mean=-0.034  95% CI [-0.134,+0.038]  better=10/20  p_sign=1.0000
+   MRR       mean=-0.031  95% CI [-0.102,+0.020]  better=14/26  p_sign=0.8450
+   nDCG@5    mean=-0.068  95% CI [-0.170,+0.007]  better=11/25  p_sign=0.6900
+-- window lambda=1.0, W=90
+   acc@1     mean=-0.016  95% CI [-0.099,+0.067]  better=2/6  p_sign=0.6875
+   recall@3  mean=-0.039  95% CI [-0.119,+0.025]  better=8/19  p_sign=0.6476
+   MRR       mean=-0.029  95% CI [-0.096,+0.024]  better=9/25  p_sign=0.2295
+   nDCG@5    mean=-0.057  95% CI [-0.149,+0.014]  better=11/25  p_sign=0.6900
+-- window lambda=1.0, W=180
+   acc@1     mean=+0.017  95% CI [-0.036,+0.084]  better=3/5  p_sign=1.0000
+   recall@3  mean=+0.010  95% CI [-0.018,+0.046]  better=7/14  p_sign=1.0000
+   MRR       mean=+0.006  95% CI [-0.024,+0.041]  better=12/23  p_sign=1.0000
+   nDCG@5    mean=-0.012  95% CI [-0.053,+0.030]  better=10/22  p_sign=0.8318
+-- window lambda=1.0, W=360
+   acc@1     mean=+0.028  95% CI [-0.008,+0.095]  better=2/3  p_sign=1.0000
+   recall@3  mean=+0.011  95% CI [-0.013,+0.039]  better=5/8  p_sign=0.7266
+   MRR       mean=+0.014  95% CI [-0.009,+0.050]  better=10/20  p_sign=1.0000
+   nDCG@5    mean=+0.006  95% CI [-0.025,+0.047]  better=10/19  p_sign=1.0000

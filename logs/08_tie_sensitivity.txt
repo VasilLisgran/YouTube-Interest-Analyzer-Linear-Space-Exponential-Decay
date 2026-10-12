@@ -1,0 +1,14 @@
+
+confirmatory comparison (lambda = 0.95 vs control), W = infinity, under 40 independent tie-break salts, 28 origins each
+metric          mean        sd       min       max    salts>0
+acc@1        +0.0191    0.0000   +0.0191   +0.0191      40/40
+recall@3     +0.0314    0.0000   +0.0314   +0.0314      40/40
+MRR          +0.0133    0.0000   +0.0133   +0.0133      40/40
+nDCG@5       +0.0099    0.0000   +0.0099   +0.0099      40/40
+
+confirmatory comparison (lambda = 0.95 vs control), W = 360, under 40 independent tie-break salts, 28 origins each
+metric          mean        sd       min       max    salts>0
+acc@1        -0.0128    0.0000   -0.0128   -0.0128       0/40
+recall@3     +0.0272    0.0000   +0.0272   +0.0272      40/40
+MRR          -0.0051    0.0000   -0.0051   -0.0051       0/40
+nDCG@5       -0.0036    0.0000   -0.0036   -0.0036       0/40

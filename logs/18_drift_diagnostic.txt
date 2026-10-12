@@ -1,0 +1,4 @@
+likes (u2,u3): users 2; mean recent advantage (TV_all - TV_recent) -0.001 [-0.029,+0.027]; positive for 1/2; per-user values: +0.027 -0.029
+watches (first watch): users 76; mean recent advantage (TV_all - TV_recent) -0.029 [-0.043,-0.015]; positive for 24/76; per-user values: 
+synthetic drift: users 30; mean recent advantage (TV_all - TV_recent) +0.040 [+0.028,+0.052]; positive for 26/30; per-user values: 
+synthetic stable: users 30; mean recent advantage (TV_all - TV_recent) -0.041 [-0.045,-0.038]; positive for 0/30; per-user values: 

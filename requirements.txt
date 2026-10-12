@@ -1,0 +1,10 @@
+# Pinned to the stack that produced the committed logs (Python 3.12).
+numpy==2.4.4
+scipy==1.17.1
+scikit-learn==1.8.0
+matplotlib==3.10.8
+
+# Needed only for the LaBSE-based steps (01 and 02), which download
+# sentence-transformers/LaBSE from Hugging Face on first use.
+# Pin the exact version you used: pip freeze | grep -i sentence
+sentence-transformers>=3.0

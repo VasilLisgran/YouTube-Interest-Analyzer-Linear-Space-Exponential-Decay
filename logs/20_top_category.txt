@@ -1,0 +1,20 @@
+[skip] ../data/user_videos_u1.json: fewer than 20 distinct dates
+--- user_videos_u2.json: 829 events, 13 origins ---
+  most frequent categories, whole history (count): [('People & Blogs', 278), ('Music', 175), ('Education', 89)]
+  ranked first under control lambda=1.0 (origins):   [('Music', 12), ('Comedy', 1)]
+  ranked first under lambda=0.95 (origins):          [('Music', 7), ('People & Blogs', 3), ('Education', 2), ('Comedy', 1)]
+  most frequent category in the test window (origins): [('Music', 8), ('People & Blogs', 4), ('Comedy', 1)]
+  first-ranked category differs at 5 of 13 origins:
+     ('2025-04-03', 'Music', 'Education')
+     ('2025-06-02', 'Music', 'Education')
+     ('2025-11-29', 'Music', 'People & Blogs')
+     ('2026-01-28', 'Music', 'People & Blogs')
+     ('2026-03-29', 'Music', 'People & Blogs')
+--- user_videos_u3.json: 4299 events, 15 origins ---
+  most frequent categories, whole history (count): [('People & Blogs', 1716), ('Sports', 508), ('Entertainment', 476)]
+  ranked first under control lambda=1.0 (origins):   [('People & Blogs', 15)]
+  ranked first under lambda=0.95 (origins):          [('People & Blogs', 14), ('Education', 1)]
+  most frequent category in the test window (origins): [('People & Blogs', 14), ('Gaming', 1)]
+  first-ranked category differs at 1 of 15 origins:
+     ('2025-07-21', 'People & Blogs', 'Education')
+[skip] ../data/user_videos_u7.json: fewer than 20 distinct dates

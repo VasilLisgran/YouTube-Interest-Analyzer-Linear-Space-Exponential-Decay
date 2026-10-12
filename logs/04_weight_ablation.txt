@@ -1,0 +1,200 @@
+### weight scheme: original ###
+--- u2 / original ---
+reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=original
+events skipped (no liked_at / weight): 0
+events skipped (out of window): 402
+
+category                  n   N_eff  top1_share  top3_share
+-----------------------------------------------------------
+People & Blogs          191   11.85      10.1%      30.0%
+Sports                   52    4.88      32.9%      65.7%
+Entertainment            45    1.97      70.6%      82.3%
+Music                    28    1.59      78.7%      92.4%
+Education                36    7.90      21.8%      50.2%
+Comedy                    9    2.93      40.3%      92.5%
+Travel & Events          10    4.98      27.2%      73.4%
+Gaming                   24    6.84      28.1%      56.4%
+Howto & Style             5    4.44      29.1%      72.4%
+Autos & Vehicles          4    2.15      50.2%      99.0%
+News & Politics           9    1.71      75.5%      90.0%
+Science & Technology      8    1.36      84.7%      98.7%
+Film & Animation          4    2.65      50.5%      99.8%
+Nonprofits & Activism     1    1.00     100.0%     100.0%
+Pets & Animals            1    1.00     100.0%     100.0%
+
+Categories where N_eff < 1.5 are effectively single-event profiles.
+Dominant events per category:
+
+  [Science & Technology]  N_eff=1.36  n=8
+        0.25  (117d ago, raw_weight=102.62)  Невыгодный психолог                          #17pro #iphone #психолог
+        0.04  (109d ago, raw_weight=10.0)  Методы минимизации #алгоритмы #олимпиады #программирование #coding #co
+        0.00  (200d ago, raw_weight=137.5)  Simple Fractal rendering
+
+  [Nonprofits & Activism]  N_eff=1.00  n=1
+        0.03  (116d ago, raw_weight=10.0)  Домашний сурикат боится 😅 #юмор #смехпродлеваетжизнь
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.02  (122d ago, raw_weight=10.0)  One Smart Raven
+--- u3 / original ---
+reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=original
+events skipped (no liked_at / weight): 0
+events skipped (out of window): 3069
+
+category                  n   N_eff  top1_share  top3_share
+-----------------------------------------------------------
+People & Blogs          606   62.02       2.4%       7.2%
+Film & Animation         37   14.57       7.4%      22.1%
+Entertainment           115   14.59       9.5%      27.5%
+Gaming                  148   11.15      11.6%      32.1%
+Music                    46    7.69      16.0%      46.2%
+Comedy                   49    5.43      23.9%      69.8%
+Education                40    2.68      59.7%      70.9%
+Autos & Vehicles         19    1.55      79.7%      90.4%
+Howto & Style            10    1.20      90.8%      99.4%
+Sports                  124   11.68      15.3%      43.0%
+Science & Technology     17    3.48      47.6%      77.8%
+Travel & Events           9    2.76      54.2%      88.6%
+News & Politics           7    1.46      82.0%      96.1%
+Nonprofits & Activism     2    1.95      57.7%     100.0%
+Pets & Animals            1    1.00     100.0%     100.0%
+
+Categories where N_eff < 1.5 are effectively single-event profiles.
+Dominant events per category:
+
+  [Howto & Style]  N_eff=1.20  n=10
+       75.77  (  6d ago, raw_weight=103.07)  КАК КУПИТЬ НОЖ В МАГАЗИНЕ ?!#юмор #нож #приколы #EDC
+        6.43  ( 54d ago, raw_weight=102.62)  Ich habe einen Schulbus vergraben (Geheimer Luxus-Bunker!) 🤯 [KI-Konze
+        0.77  ( 50d ago, raw_weight=10.0)  Est-ce que McDonalds's peut remplir mon seau géant de Nuggets ?
+
+  [News & Politics]  N_eff=1.46  n=7
+        3.47  ( 70d ago, raw_weight=125.8)  "Круглый" навёл суету в Озоне. Real video
+        0.42  ( 62d ago, raw_weight=10.0)  Забавное видео из такси стало хитом.
+        0.18  (127d ago, raw_weight=121.89)  Скандал у Соловьёва! Жириновский мокрый, а Собчак бл! Дебаты 2018 на Р
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.03  (162d ago, raw_weight=102.15)  WOULD YOU SURVIVE...? #shorts
+### weight scheme: continuous_log ###
+--- u2 / continuous_log ---
+reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=continuous_log
+events skipped (no liked_at / weight): 0
+events skipped (out of window): 402
+
+category                  n   N_eff  top1_share  top3_share
+-----------------------------------------------------------
+People & Blogs          191   17.51       7.5%      22.4%
+Sports                   52   11.75      11.8%      32.4%
+Entertainment            45    4.43      32.1%      81.3%
+Music                    28    3.43      37.3%      92.0%
+Comedy                    9    2.20      48.0%      96.8%
+Education                36    2.20      66.4%      78.5%
+Gaming                   24   12.66      13.4%      36.7%
+Travel & Events          10    6.32      22.6%      60.6%
+Autos & Vehicles          4    3.03      40.6%      94.8%
+Howto & Style             5    4.57      28.3%      70.3%
+News & Politics           9    4.56      31.1%      71.7%
+Film & Animation          4    2.63      51.3%      99.8%
+Science & Technology      8    2.07      57.4%      98.8%
+Nonprofits & Activism     1    1.00     100.0%     100.0%
+Pets & Animals            1    1.00     100.0%     100.0%
+
+Categories where N_eff < 1.5 are effectively single-event profiles.
+Dominant events per category:
+
+  [Nonprofits & Activism]  N_eff=1.00  n=1
+        0.13  (116d ago, raw_weight=48.87)  Домашний сурикат боится 😅 #юмор #смехпродлеваетжизнь
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.11  (122d ago, raw_weight=56.76)  One Smart Raven
+--- u3 / continuous_log ---
+reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=continuous_log
+events skipped (no liked_at / weight): 0
+events skipped (out of window): 3069
+
+category                  n   N_eff  top1_share  top3_share
+-----------------------------------------------------------
+People & Blogs          606   99.78       1.5%       4.5%
+Film & Animation         37   15.47       7.1%      21.2%
+Entertainment           115   18.27       7.8%      23.1%
+Gaming                  148   15.13       9.2%      25.2%
+Music                    46   10.16      12.3%      36.5%
+Comedy                   49    8.80      16.0%      46.1%
+Education                40    4.44      39.7%      68.3%
+Sports                  124    6.52      29.2%      56.9%
+Autos & Vehicles         19    2.01      69.9%      78.0%
+Howto & Style            10    1.47      81.7%      96.6%
+Science & Technology     17    5.42      34.0%      60.8%
+Travel & Events           9    3.11      51.8%      80.0%
+News & Politics           7    2.19      51.4%      97.7%
+Nonprofits & Activism     2    1.93      59.6%     100.0%
+Pets & Animals            1    1.00     100.0%     100.0%
+
+Categories where N_eff < 1.5 are effectively single-event profiles.
+Dominant events per category:
+
+  [Howto & Style]  N_eff=1.47  n=10
+       46.53  (  6d ago, raw_weight=63.29)  КАК КУПИТЬ НОЖ В МАГАЗИНЕ ?!#юмор #нож #приколы #EDC
+        4.54  ( 50d ago, raw_weight=58.98)  Est-ce que McDonalds's peut remplir mon seau géant de Nuggets ?
+        3.94  ( 54d ago, raw_weight=62.84)  Ich habe einen Schulbus vergraben (Geheimer Luxus-Bunker!) 🤯 [KI-Konze
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.02  (162d ago, raw_weight=62.38)  WOULD YOU SURVIVE...? #shorts
+### weight scheme: uniform ###
+--- u2 / uniform ---
+reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=uniform
+events skipped (no liked_at / weight): 0
+events skipped (out of window): 402
+
+category                  n   N_eff  top1_share  top3_share
+-----------------------------------------------------------
+People & Blogs          191   17.99       6.9%      20.7%
+Sports                   52   12.01       9.7%      28.5%
+Entertainment            45    4.54      28.8%      80.9%
+Music                    28    3.53      30.7%      92.1%
+Comedy                    9    2.21      47.6%      96.5%
+Education                36    1.63      77.9%      84.1%
+Gaming                   24   13.58      11.5%      33.8%
+Travel & Events          10    6.19      22.4%      61.0%
+Autos & Vehicles          4    3.50      32.6%      90.5%
+Howto & Style             5    4.14      31.0%      77.8%
+News & Politics           9    4.70      30.3%      67.6%
+Film & Animation          4    2.65      50.5%      99.8%
+Science & Technology      8    2.05      58.1%      99.1%
+Nonprofits & Activism     1    1.00     100.0%     100.0%
+Pets & Animals            1    1.00     100.0%     100.0%
+
+Categories where N_eff < 1.5 are effectively single-event profiles.
+Dominant events per category:
+
+  [Nonprofits & Activism]  N_eff=1.00  n=1
+        0.00  (116d ago, raw_weight=1.0)  Домашний сурикат боится 😅 #юмор #смехпродлеваетжизнь
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.00  (122d ago, raw_weight=1.0)  One Smart Raven
+--- u3 / uniform ---
+reference=2026-08-26  lambda=0.95  max_days=360  weight_scheme=uniform
+events skipped (no liked_at / weight): 0
+events skipped (out of window): 3069
+
+category                  n   N_eff  top1_share  top3_share
+-----------------------------------------------------------
+People & Blogs          606  100.45       1.5%       4.3%
+Film & Animation         37   16.44       6.7%      20.1%
+Entertainment           115   18.63       8.1%      23.2%
+Gaming                  148   15.27       8.3%      23.7%
+Music                    46   10.53      11.9%      35.0%
+Comedy                   49    9.34      13.3%      40.0%
+Sports                  124    6.32      28.1%      58.1%
+Education                40    4.17      35.8%      71.1%
+Autos & Vehicles         19    2.99      56.3%      66.8%
+Howto & Style            10    1.54      79.8%      95.0%
+Science & Technology     17    6.33      23.1%      58.8%
+Travel & Events           9    4.65      35.9%      68.4%
+News & Politics           7    2.09      57.6%      97.9%
+Nonprofits & Activism     2    1.99      53.8%     100.0%
+Pets & Animals            1    1.00     100.0%     100.0%
+
+Categories where N_eff < 1.5 are effectively single-event profiles.
+Dominant events per category:
+
+  [Pets & Animals]  N_eff=1.00  n=1
+        0.00  (162d ago, raw_weight=1.0)  WOULD YOU SURVIVE...? #shorts

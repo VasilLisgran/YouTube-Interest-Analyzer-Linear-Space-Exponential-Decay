@@ -103,7 +103,7 @@ the output of `chrono_split.py` on the replication users (`external/results/`),
 which carries per-user metrics only, and the identifiers of the 82 selected
 users. `external/README_external.md` explains how to regenerate everything else.
 
-## Java client (optional)
+## Java client (is optional)
 
 Only needed to re-export data; the paper's numbers are computed from `data/`.
 Requires Java 11+ and Maven (`mvn -f client/pom.xml package`). Run class `Main`

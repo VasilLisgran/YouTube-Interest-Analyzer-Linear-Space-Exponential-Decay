@@ -54,8 +54,8 @@ Steps 2-4 take three days at the default API quota.
    python3 external_data_quality.py --log log_selected.csv --meta meta.csv \
            --cs ../outputs/chrono_split_external.json > ../logs/16_external_data_quality.txt
    ```
-   Add `--by-year` to print the share of watch events without metadata per year
-   (Section 3.2.3).
+   With `--by-year` the same command also prints the share of watch events without
+   metadata per year (Section 3.2.3); its output is `logs/16b_external_missing_by_year.txt`.
 
 Sensitivity analyses (protocol, Section 5): S1 runs `chrono_split.py` on
 `users_allwatches/`, after giving each watch a unique id (`video_id#k`), because

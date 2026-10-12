@@ -1,0 +1,16 @@
+share of each user's distinct videos without metadata: median 0.170, IQR 0.145-0.206, min 0.053, max 0.445
+lambda=1.0    user-mean acc@1 0.290  recall@3 0.590
+lambda=0.95   user-mean acc@1 0.295  recall@3 0.577
+lambda=random user-mean acc@1 0.059  recall@3 0.176
+users analysed 76 origins 1637
+
+share of watch events without metadata, by year:
+  2010: 0.128  (99 of 771)
+  2011: 0.141  (862 of 6120)
+  2012: 0.147  (1871 of 12762)
+  2013: 0.145  (3209 of 22101)
+  2014: 0.144  (7000 of 48486)
+  2015: 0.138  (9604 of 69732)
+  2016: 0.145  (19143 of 131812)
+  2017: 0.154  (31691 of 205942)
+  2018: 0.178  (31055 of 174640)

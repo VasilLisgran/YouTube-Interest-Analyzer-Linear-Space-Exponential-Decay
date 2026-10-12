@@ -11,12 +11,12 @@ ranking floor, and the number of users and origins analysed.
   python3 external_data_quality.py --cs results/chrono_split_external.json   # lines 2-5 only
 
 --by-year additionally prints the share of watch events without metadata per calendar year
-(the figure quoted in Section 3.2.3 of the paper). It is not part of the committed log 16.
+(the figure quoted in Section 3.2.3 of the paper); see logs/16b_external_missing_by_year.txt.
 
 The script that wrote the committed log 16 was not kept; this one was written afterwards to the
-same definitions. Lines 2-5 reproduce the committed log exactly from
-results/chrono_split_external.json. Line 1 and --by-year could not be re-checked here, because
-the metadata were deleted as the YouTube API terms require; run them before deleting meta.csv.
+same definitions. Run on 2026-10-12 against the original log_selected.csv and meta.csv, it
+reproduces all five lines of log 16; the --by-year output is logs/16b_external_missing_by_year.txt
+(its counts add up to the 104,534 rows without metadata of 672,366 reported in log 12).
 """
 import argparse, csv, json, sys
 from collections import defaultdict

@@ -52,7 +52,7 @@ What the offline run covers, and what it cannot:
 | 17, 18 (likes and synthetic lines) | `data/`, `external/synthetic/` | yes |
 | 01, 02 | `data/` + LaBSE model | `--labse` (20-60+ min, downloads the model) |
 | 13, 18 (watches line) | per-user watch files | `--watch-users DIR` |
-| 12, 12b, 16 line 1 | public watch log + YouTube API metadata | manual, see `external/README_external.md` |
+| 12, 12b, 16 line 1, 16b | public watch log + YouTube API metadata | manual, see `external/README_external.md` |
 
 Steps 01-02 agree with the committed logs to the printed precision rather than
 byte for byte, because of BLAS and threading details. `logs/01b_...json` holds the
@@ -84,6 +84,7 @@ the same mapping.
 | `14_external_user_level.txt` | Tables 7 and 9, Figure 2 | `external/external_user_level.py`, `make_figure2.py` |
 | `15_external_sensitivity.txt` | Table 8 | `external/external_user_level.py` |
 | `16_external_data_quality.txt` | Sections 3.2.3 and 4.2.1 | `external/external_data_quality.py` |
+| `16b_external_missing_by_year.txt` | Section 3.2.3 (metadata loss by year) | `external/external_data_quality.py --by-year` |
 | `17_code_validation_synthetic.txt` | Section 3.5 | `chrono_split.py`, `external/external_user_level.py` |
 | `18_drift_diagnostic.txt` | Section 5.2 | `drift_diagnostic.py` |
 | `19_window_tie_sensitivity.txt` | Section 4.1.5 | `window_tie_sensitivity.py` |

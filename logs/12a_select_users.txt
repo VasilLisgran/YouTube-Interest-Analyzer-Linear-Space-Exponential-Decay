@@ -1,0 +1,2 @@
+users in log: 244; selected: 82; unique videos: 473125 (~9463 API calls); seed=0; budget=475000
+not used (quota): 162 users

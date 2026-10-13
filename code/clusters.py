@@ -4,7 +4,7 @@ clusters.py — per-category semantic clustering of liked-video titles.
 Changes relative to the pilot client:
   [FIX-1] Input and output paths are CLI arguments, so six accounts can be
           processed without editing the file between runs.
-  [FIX-2] Keyword ranking now uses tf * idf, as described in Section 3.3 of the
+  [FIX-2] Keyword ranking now uses tf * idf, as described in Section 3.1.3 of the
           manuscript. The previous version ranked by raw frequency only, so the
           manuscript described a method the released code did not implement.
   [FIX-3] clean_text now strips URLs and @mentions BEFORE punctuation. In the

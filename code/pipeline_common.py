@@ -93,7 +93,7 @@ def load_events(path, weight_scheme=DEFAULT_WEIGHT_SCHEME, dedup_key='video_id',
     dedup_key='video_id' is the pipeline default: a video is one event, and
     two different videos that happen to share a title are two events.
     dedup_key='title' reproduces the earlier convention and exists only so
-    that the effect of the choice can be measured (Section 7.4).
+    that the effect of the choice can be measured (Appendix A.4 of the paper).
 
     require_date=True additionally drops entries without a usable like date;
     the temporal experiment needs it, the classification experiment does not.

@@ -51,7 +51,7 @@ public class YouTubeDataLoader {
     private final Map<String, Integer> unknownCategoryIds = new TreeMap<>();
 
     public YouTubeDataLoader(YouTube youtube, CategoryRegistry categoryRegistry) {
-        this(youtube, categoryRegistry, WeightScheme.ORIGINAL);
+        this(youtube, categoryRegistry, WeightScheme.CONTINUOUS_LOG);
     }
 
     public YouTubeDataLoader(YouTube youtube, CategoryRegistry categoryRegistry,

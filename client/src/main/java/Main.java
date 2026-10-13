@@ -33,7 +33,7 @@ public class Main {
 
             int maxSearches = Integer.parseInt(opt.getOrDefault("max-searches", "20"));
             YouTubeDataLoader.WeightScheme weight = YouTubeDataLoader.WeightScheme
-                    .valueOf(opt.getOrDefault("weight", "ORIGINAL"));
+                    .valueOf(opt.getOrDefault("weight", "CONTINUOUS_LOG"));
 
             LocalDate referenceDate = opt.containsKey("reference-date")
                     ? LocalDate.parse(opt.get("reference-date"))

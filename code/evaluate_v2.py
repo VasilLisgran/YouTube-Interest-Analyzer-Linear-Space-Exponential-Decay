@@ -183,11 +183,12 @@ def predict_keyword(test, keywords, majority):
     fallback_rate is the fraction of test items for which NO cluster keyword
     matched any token, so the prediction defaulted to the majority class.
     This number is essential for interpreting the headline accuracy: the
-    majority class alone scores ~0.35 on this data, so a method that falls
-    back most of the time can post a competitive accuracy while doing almost
-    no actual work -- which is exactly the pattern implied by this method
-    ranking 1st on accuracy but last on balanced accuracy, macro-F1 and
-    kappa.  Report accuracy and fallback rate together, never alone."""
+    majority class alone scores about 0.37 on this data, so a method that
+    falls back most of the time can post a competitive accuracy while doing
+    little actual work -- the pattern of this method, which is ahead of the
+    majority baseline on accuracy but last among the content-based methods
+    on balanced accuracy, macro-F1 and kappa.  Report accuracy and fallback
+    rate together, never alone."""
     preds, fallbacks, fired_idx = [], 0, []
     for v in test:
         toks = set(v['clean'].split())

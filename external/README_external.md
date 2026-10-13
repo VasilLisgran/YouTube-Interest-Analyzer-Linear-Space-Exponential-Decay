@@ -7,7 +7,7 @@ The pre-specified protocol, with its record of deviations, is
 
 | File | Content |
 |---|---|
-| `select_users.py`, `selected_users.txt` | seeded selection of the 82 users that fit one day of API quota |
+| `select_users.py`, `selected_users.txt` | seeded selection of the 82 users that fit one day of API quota (log 12a) |
 | `fetch_video_metadata.py` | category and duration of each video from the YouTube Data API |
 | `adapt_watch_dataset.py` | watch log + metadata -> per-user JSON in the schema of `data/` |
 | `external_user_level.py` | user-level analysis of a `chrono_split.py` result (logs 14, 15, 17) |
@@ -30,8 +30,10 @@ Steps 2-4 take three days at the default API quota.
 
 1. Select the users (seeded, independent of the data values):
    ```bash
-   python3 select_users.py --log youtube_watch_log.csv --out-log log_selected.csv --out-ids selected_users.txt
+   python3 select_users.py --log youtube_watch_log.csv --out-log log_selected.csv \
+           --out-ids selected_users.txt > ../logs/12a_select_users.txt
    ```
+   This step needs only the public file and reproduces `selected_users.txt` exactly.
 2. Fetch the metadata with your own API key; repeat daily until it prints `all done`:
    ```bash
    export YT_API_KEY=...        # Google Cloud project with "YouTube Data API v3" enabled

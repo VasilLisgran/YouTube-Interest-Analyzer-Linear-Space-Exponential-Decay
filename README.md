@@ -52,6 +52,7 @@ What the offline run covers, and what it cannot:
 | 17, 18 (likes and synthetic lines) | `data/`, `external/synthetic/` | yes |
 | 01, 02 | `data/` + LaBSE model | `--labse` (20-60+ min, downloads the model) |
 | 13, 18 (watches line) | per-user watch files | `--watch-users DIR` |
+| 12a | public watch log | manual, see `external/README_external.md` |
 | 12, 12b, 16 line 1, 16b | public watch log + YouTube API metadata | manual, see `external/README_external.md` |
 
 Steps 01-02 agree with the committed logs to the printed precision rather than
@@ -79,6 +80,7 @@ the same mapping.
 | `09_multiplicity.txt` | Bonferroni and Holm figures, Sections 5.1 and 5.6 | `multiplicity.py` |
 | `10_candidate_set.txt` | Section 3.3 | `candidate_set_check.py` |
 | `11_data_summary.txt` | Table 1 | `data_summary.py` |
+| `12a_select_users.txt` | Table 2 (users and videos selected) | `external/select_users.py` |
 | `12_external_adapt.txt`, `12b_external_adapt_allwatches.txt` | Table 2 | `external/adapt_watch_dataset.py` |
 | `13_external_chrono_split.txt` | Table 2, Section 3.2.3 | `chrono_split.py` |
 | `14_external_user_level.txt` | Tables 7 and 9, Figure 2 | `external/external_user_level.py`, `make_figure2.py` |
@@ -118,7 +120,9 @@ Main --user u2 --reference-date 2026-08-26 --lambda 0.95 --max-days 360 \
 It authenticates with your own OAuth client (`client/src/main/resources/client-secret.json`,
 git-ignored; credentials are not distributed), exports the liked-video history,
 calls `code/clusters.py` for keyword clusters and issues keyword searches. Pass
-`--out demo` to keep the committed `data/` untouched.
+`--out demo` to keep the committed `data/` untouched. The default weight scheme is
+`CONTINUOUS_LOG`, as in the analysis; the command above passes `--weight ORIGINAL`
+because that is how the committed `demo/` run was made.
 
 ## License and citation
 

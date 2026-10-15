@@ -76,7 +76,7 @@ public class YouTubeDataLoader {
             YouTube.PlaylistItems.List playlistRequest = youtube.playlistItems()
                     .list(Arrays.asList("snippet", "contentDetails"));
             playlistRequest.setPlaylistId("LL");
-            playlistRequest.setMaxResults(API_PAGE_SIZE);   // [FIX-1]
+            playlistRequest.setMaxResults(API_PAGE_SIZE);
             if (pageToken != null) {
                 playlistRequest.setPageToken(pageToken);
             }

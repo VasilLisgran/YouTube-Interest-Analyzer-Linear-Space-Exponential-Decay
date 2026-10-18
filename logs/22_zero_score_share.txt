@@ -1,0 +1,3 @@
+../data/user_videos_u2.json: 13 origins, mean share of categories with zero score 0.434
+../data/user_videos_u3.json: 15 origins, mean share of categories with zero score 0.141
+pooled over 28 origins: 0.277 of 17 categories

@@ -95,6 +95,9 @@ done > "$LOGS/07_weight_truncation_ablation.txt"
 step "08 tie-break sensitivity of the confirmatory comparison"
 $PY ../code/tie_sensitivity.py "${A[@]}" > "$LOGS/08_tie_sensitivity.txt"
 
+step "22 share of zero-score categories at the baseline (tie-break context)"
+(cd ../code && $PY zero_score_share.py "${A[@]/#..\//../}") > "$LOGS/22_zero_score_share.txt"
+
 step "09 multiplicity (Bonferroni, Holm)"
 $PY ../code/multiplicity.py chrono_split.json > "$LOGS/09_multiplicity.txt"
 

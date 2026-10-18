@@ -92,6 +92,7 @@ Section, table and figure numbers refer to the manuscript (IRRJ version). Table 
 | `18_drift_diagnostic.txt` | Section 7.1 | `drift_diagnostic.py` |
 | `19_window_tie_sensitivity.txt` | Section 5.4 (supporting) | `window_tie_sensitivity.py` |
 | `20_top_category.txt` | supporting check, not cited in the text | `top_category_check.py` |
+| `22_zero_score_share.txt` | Section 3.4 (share of zero-score categories) | `zero_score_share.py` |
 | `21_external_user_level_drop213.txt` | Section 6.3 (duplicated history removed) | `external/external_user_level.py --drop-ids 213` |
 
 ## Data

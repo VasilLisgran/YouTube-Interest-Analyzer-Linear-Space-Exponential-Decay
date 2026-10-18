@@ -64,33 +64,35 @@ The scripts run with `outputs/` as the working directory. It is a sibling of
 
 ## What backs what
 
-Section, table and figure numbers refer to the manuscript; its Appendix B gives
-the same mapping.
+Section, table and figure numbers refer to the manuscript (IRRJ version). Table 1: accounts;
+2: data funnel; 3: per-account grid; 4: per-origin comparison; 5: weights and truncation;
+6: window control; 7: replication; 8: sensitivity; 9: replication grid.
 
 | Log | Reports | Script |
 |---|---|---|
-| `01_evaluate.txt`, `01b_results_labse_dbscan_title_per_user.json` | Tables 10-11, Sections 4.3.1-4.3.2 | `evaluate_v2.py` |
-| `02_clustering_sweep.txt` | Appendix A.1 | `sweeps.py --mode clustering` |
-| `03_lambda_sweep.txt` | Appendix A.3 | `sweeps.py --mode lambda` |
-| `04_weight_ablation.txt` | Appendix A.2 | `decay_diagnostics.py` |
-| `05_chrono_split.txt` | Tables 3-4, Figure 1, Sections 3.3-4.1.3 | `chrono_split.py`, `make_figure1.py` |
-| `06_window_control.txt` | Table 6, Section 4.1.5 | `window_control.py` |
-| `07_weight_truncation_ablation.txt` | Table 5 | `chrono_split.py` |
-| `08_tie_sensitivity.txt` | Section 4.1.3 | `tie_sensitivity.py` |
-| `09_multiplicity.txt` | Bonferroni and Holm figures, Sections 5.1 and 5.6 | `multiplicity.py` |
+| `01_evaluate.txt`, `01b_results_labse_dbscan_title_per_user.json` | Appendix A.2 (clustering audit) | `evaluate_v2.py` |
+| `02_clustering_sweep.txt` | Appendix A.2 | `sweeps.py --mode clustering` |
+| `03_lambda_sweep.txt` | Appendix A.1 | `sweeps.py --mode lambda` |
+| `04_weight_ablation.txt` | Appendix A.1 | `decay_diagnostics.py` |
+| `05_chrono_split.txt` | Tables 3-4, Figure 1, Sections 3.3, 5.1-5.2 | `chrono_split.py`, `make_figure1.py` |
+| `06_window_control.txt` | Table 6, Section 5.4 | `window_control.py` |
+| `07_weight_truncation_ablation.txt` | Table 5, Section 5.3 | `chrono_split.py` |
+| `08_tie_sensitivity.txt` | Section 3.4 | `tie_sensitivity.py` |
+| `09_multiplicity.txt` | Bonferroni and Holm figures, Sections 5.5 and 8 | `multiplicity.py` |
 | `10_candidate_set.txt` | Section 3.3 | `candidate_set_check.py` |
 | `11_data_summary.txt` | Table 1 | `data_summary.py` |
 | `12a_select_users.txt` | Table 2 (users and videos selected) | `external/select_users.py` |
 | `12_external_adapt.txt`, `12b_external_adapt_allwatches.txt` | Table 2 | `external/adapt_watch_dataset.py` |
-| `13_external_chrono_split.txt` | Table 2, Section 3.2.3 | `chrono_split.py` |
+| `13_external_chrono_split.txt` | Table 2, Sections 4.2 and 6.3 | `chrono_split.py` |
 | `14_external_user_level.txt` | Tables 7 and 9, Figure 2 | `external/external_user_level.py`, `make_figure2.py` |
 | `15_external_sensitivity.txt` | Table 8 | `external/external_user_level.py` |
-| `16_external_data_quality.txt` | Sections 3.2.3 and 4.2.1 | `external/external_data_quality.py` |
-| `16b_external_missing_by_year.txt` | Section 3.2.3 (metadata loss by year) | `external/external_data_quality.py --by-year` |
-| `17_code_validation_synthetic.txt` | Section 3.5 | `chrono_split.py`, `external/external_user_level.py` |
-| `18_drift_diagnostic.txt` | Section 5.2 | `drift_diagnostic.py` |
-| `19_window_tie_sensitivity.txt` | Section 4.1.5 | `window_tie_sensitivity.py` |
-| `20_top_category.txt` | Section 5.1 | `top_category_check.py` |
+| `16_external_data_quality.txt` | Sections 4.2 and 6.3 | `external/external_data_quality.py` |
+| `16b_external_missing_by_year.txt` | Section 4.2 (metadata loss by year) | `external/external_data_quality.py --by-year` |
+| `17_code_validation_synthetic.txt` | Section 6.2 | `chrono_split.py`, `external/external_user_level.py` |
+| `18_drift_diagnostic.txt` | Section 7.1 | `drift_diagnostic.py` |
+| `19_window_tie_sensitivity.txt` | Section 5.4 (supporting) | `window_tie_sensitivity.py` |
+| `20_top_category.txt` | supporting check, not cited in the text | `top_category_check.py` |
+| `21_external_user_level_drop213.txt` | Section 6.3 (duplicated history removed) | `external/external_user_level.py --drop-ids 213` |
 
 ## Data
 

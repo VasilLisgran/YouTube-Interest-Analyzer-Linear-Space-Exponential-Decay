@@ -1,6 +1,6 @@
 # Pre-specified protocol: external replication on a public watch-history dataset
 
-Status: written 2026-10-09, BEFORE any file of the dataset has been opened or analysed.
+Status: written 2026-10-09, before any analysis of the dataset and before any video metadata were fetched. The archive had been opened beforehand only to read its README and column header and to count events per user (see Deviations). The first version-control commit containing this file is dated 2026-10-12.
 To keep its meaning, commit/timestamp this file (git commit, OSF or Zenodo) before running anything on the data.
 Anything decided or changed after seeing the data goes to the section "Deviations" at the bottom, with date and reason.
 
@@ -17,7 +17,7 @@ Does exponential decay of event weights (lambda = 0.95, half-life 13.5 d) improv
 future watched videos over the no-decay control (lambda = 1.0, W = infinity)?
 H1 (primary): per-user mean recall@3 difference (0.95 minus 1.0) is positive.
 This is the same comparison, same metric and same lambda as the confirmatory comparison on the like data
-(Section 5.3 of the manuscript). Nothing is tuned on the new data.
+(Section 3.4 of the manuscript). Nothing is tuned on the new data.
 
 ## 2. Unit of analysis
 The user. Each user's differences are first averaged over that user's origins (equal weight per origin, as in the

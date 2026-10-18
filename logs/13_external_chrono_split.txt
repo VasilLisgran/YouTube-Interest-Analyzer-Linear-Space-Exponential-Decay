@@ -930,11 +930,11 @@ weight_scheme=continuous_log  W=inf  origins=disjoint  horizon=60d  min_origins=
     1.000      0.290±0.144      0.590±0.130      0.488±0.114      0.832±0.108
    random      0.059±0.002      0.176±0.003      0.202±0.002      0.280±0.039
 
---- decay vs. no decay (lambda = 1.0 control), account-level ---
-  acc@1    : best lambda=0.99  diff=+0.0166  wins=44/76  -> decay helps
-  recall@3 : best lambda=0.995  diff=+0.0081  wins=41/76  -> decay helps
-  MRR      : best lambda=0.99  diff=+0.0107  wins=51/76  -> decay helps
-  nDCG@5   : best lambda=0.995  diff=+0.0134  wins=57/76  -> decay helps
+--- decay vs. no decay (lambda = 1.0 control), account-level; best lambda = maximum over the grid, chosen after the fact (optimistic summary, not a test) ---
+  acc@1    : best lambda=0.99  diff=+0.0166  wins=44/76  -> best-of-grid difference is positive
+  recall@3 : best lambda=0.995  diff=+0.0081  wins=41/76  -> best-of-grid difference is positive
+  MRR      : best lambda=0.99  diff=+0.0107  wins=51/76  -> best-of-grid difference is positive
+  nDCG@5   : best lambda=0.995  diff=+0.0134  wins=57/76  -> best-of-grid difference is positive
 
 --- per-origin paired comparison, lambda=0.95 vs control (moving-block bootstrap, block=2) ---
 account  metric      n   mean d    better              95% CI   p_sign   p_wilc

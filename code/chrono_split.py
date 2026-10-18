@@ -429,7 +429,9 @@ def main():
         label = f'{lam:9.3f}' if lam != 'random' else f'{"random":>9s}'
         print(label + ' ' + ' '.join(f'{c:>16s}' for c in cells))
 
-    print('\n--- decay vs. no decay (lambda = 1.0 control), account-level ---')
+    print('\n--- decay vs. no decay (lambda = 1.0 control), account-level; '
+          'best lambda = maximum over the grid, chosen after the fact '
+          '(optimistic summary, not a test) ---')
     verdicts = {}
     for metric in METRICS:
         base = np.array([per_account[a]['_means_raw'][1.0][metric]
@@ -447,7 +449,7 @@ def main():
                               for a in per_account]) - base > 0).sum())
         verdicts[metric] = {'best_lambda': best_lam, 'diff': best_diff,
                             'wins': wins, 'n': len(per_account)}
-        verdict = ('decay helps' if best_diff > 0
+        verdict = ('best-of-grid difference is positive' if best_diff > 0
                    else 'NO decay setting beats lambda=1.0')
         print(f'  {metric:9s}: best lambda={best_lam}  diff={best_diff:+.4f}  '
               f'wins={wins}/{len(per_account)}  -> {verdict}')

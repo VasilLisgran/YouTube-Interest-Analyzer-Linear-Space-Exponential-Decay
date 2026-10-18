@@ -3,7 +3,10 @@
 Reads the per-user results written by chrono_split.py, takes each user's mean per-origin difference
 (lambda 0.95 minus the lambda 1.0 control) and summarises over users, as in
 PROTOCOL_external_replication.md section 5.
-  python3 external_user_level.py chrono_split_external.json
+  python3 external_user_level.py chrono_split_external.json [--drop-ids 213 ...]
+
+--drop-ids removes the listed user identifiers before the analysis (used for the duplicated
+history of users 118 and 213).
 """
 import json, math, sys
 import numpy as np
@@ -14,9 +17,15 @@ for d in ('../code', '../PythonSystem'):   # works in this package and in the ma
 import chrono_split as cs
 
 LAM = 0.95
-path = sys.argv[1]
+args = sys.argv[1:]
+drop = set()
+if '--drop-ids' in args:
+    i = args.index('--drop-ids'); drop = set(args[i + 1:]); args = args[:i]
+path = args[0]
 res = json.load(open(path))['per_account']
-users = sorted(res)
+users = sorted(u for u in res if u not in drop)
+if drop:
+    print(f'dropped identifiers: {sorted(drop)}')
 print(f'users with results: {len(users)}')
 if not users:
     sys.exit(0)

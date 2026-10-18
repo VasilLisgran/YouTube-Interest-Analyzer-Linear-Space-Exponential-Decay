@@ -123,6 +123,9 @@ fi
 step "14 user-level analysis of the replication"
 (cd ../external && $PY external_user_level.py "$EXT") > "$LOGS/14_external_user_level.txt"
 
+step "21 user-level analysis without the duplicated history (user 213)"
+(cd ../external && $PY external_user_level.py "$EXT" --drop-ids 213) > "$LOGS/21_external_user_level_drop213.txt"
+
 step "15 pre-specified sensitivity analyses S1-S3"
 for S in S1 S2 S3; do
   echo "########## sensitivity $S ##########"

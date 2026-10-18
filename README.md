@@ -1,13 +1,13 @@
-# YouTube Interest Analyzer: does temporal decay help?
+# YouTube Interest Analyzer: time-decayed interest profiles
 
 Code, data and raw logs for
 
-> Kalinkin V. A. *Does Temporal Decay Help a YouTube Interest Model? A Rolling-Origin Study with a No-Decay Control.* (manuscript)
+> Kalinkin V. A. *Time-Decayed Interest Profiles for Next-Category Prediction on YouTube: Evaluation Against a No-Decay Baseline.* (manuscript)
 
 A small, interpretable user-interest model over YouTube's 17 content categories:
 each liked or watched video adds a duration-derived weight discounted by
 `lambda ** age_in_days`. The study tests the decay against an explicit no-decay
-control (`lambda = 1.0`) with a rolling-origin evaluation, first on two personal
+baseline (`lambda = 1.0`) with a time-ordered (rolling-origin) evaluation, first on two personal
 like histories and then on 76 public watch histories.
 
 ## Layout
